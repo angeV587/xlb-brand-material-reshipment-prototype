@@ -1,17 +1,28 @@
 import { useMemo, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowLeft,
+  Boxes,
   CalendarDays,
   ChevronDown,
+  ChevronRight,
   CircleCheck,
   ClipboardList,
+  Edit3,
   FileImage,
+  History,
   Info,
   MapPin,
   Minus,
   PackagePlus,
+  Power,
   Plus,
+  RotateCcw,
+  Search,
+  Settings,
   ShieldCheck,
+  Truck,
+  Workflow,
   X,
 } from 'lucide-react';
 
@@ -37,7 +48,136 @@ function QuantityControl({ value, max, onChange }) {
   );
 }
 
-export function App() {
+const seedReasons = [
+  { code: 'BFYY0001', name: '物料破损补发', description: '已到店品牌物料发生破损', org: '全部二级组织', products: 3, status: '启用', editor: '王小安', time: '2026-08-07 14:20' },
+  { code: 'BFYY0002', name: '新店开业补发', description: '新店开业首批物料缺失或破损', org: '华东、华南事业部', products: 5, status: '启用', editor: '李木子', time: '2026-08-06 09:35' },
+  { code: 'BFYY0003', name: '版本换新补发', description: '旧版物料统一换新', org: '华东事业部', products: 2, status: '停用', editor: '王小安', time: '2026-07-28 17:10' },
+];
+
+const seedApprovals = [
+  { org: '华东事业部', reason: '物料破损补发', method: '审批模板', template: '品牌物料补发审批-华东', validity: '2026-08-01 起', status: '启用', editor: '王小安', time: '2026-08-07 15:05' },
+  { org: '华南事业部', reason: '物料破损补发', method: '审批模板', template: '品牌物料补发审批-华南', validity: '2026-08-01 起', status: '启用', editor: '李木子', time: '2026-08-07 11:42' },
+  { org: '华东事业部', reason: '新店开业补发', method: '无需审批', template: '—', validity: '2026-08-01 起', status: '启用', editor: '王小安', time: '2026-08-06 10:20' },
+];
+
+function PcConfig() {
+  const [tab, setTab] = useState('reason');
+  const [reasons, setReasons] = useState(seedReasons);
+  const [approvals, setApprovals] = useState(seedApprovals);
+  const [keyword, setKeyword] = useState('');
+  const [drawer, setDrawer] = useState(null);
+  const [extraProduct, setExtraProduct] = useState(false);
+  const [approvalMethod, setApprovalMethod] = useState('审批模板');
+  const [pcToast, setPcToast] = useState('');
+
+  const filteredReasons = reasons.filter((item) => `${item.code}${item.name}`.includes(keyword.trim()));
+  const showToast = (text) => {
+    setPcToast(text);
+    window.setTimeout(() => setPcToast(''), 2400);
+  };
+  const toggleReason = (code) => setReasons((list) => list.map((item) => item.code === code ? { ...item, status: item.status === '启用' ? '停用' : '启用' } : item));
+  const toggleApproval = (target) => setApprovals((list) => list.map((item) => item.org === target.org && item.reason === target.reason ? { ...item, status: item.status === '启用' ? '停用' : '启用' } : item));
+  const saveDrawer = () => {
+    if (drawer.kind === 'reason' && drawer.mode === 'new') {
+      setReasons((list) => [{ code: 'BFYY0004', name: '活动物料补发', description: '门店活动期间物料破损补发', org: '华北事业部', products: extraProduct ? 2 : 1, status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
+    }
+    if (drawer.kind === 'approval' && drawer.mode === 'new') {
+      setApprovals((list) => [{ org: '华北事业部', reason: '物料破损补发', method: approvalMethod, template: approvalMethod === '审批模板' ? '品牌物料补发审批-华北' : '—', validity: '2026-08-09 起', status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
+    }
+    setDrawer(null);
+    setExtraProduct(false);
+    showToast(drawer.mode === 'new' ? '配置已新增' : '配置已保存，历史申请不受影响');
+  };
+
+  return (
+    <main className="pc-app">
+      <header className="pc-topbar">
+        <div className="pc-brand">新零帮</div>
+        <button className="pc-app-grid" type="button"><Boxes size={19} />应用</button>
+        <div className="pc-global-search"><Search size={17} /><span>搜索菜单、单据、商品</span></div>
+        <div className="pc-top-spacer" />
+        <span>南京众承 · 管理中心</span>
+        <span className="pc-user">王小安</span>
+      </header>
+      <div className="pc-workspace">
+        <aside className="pc-sidebar">
+          <div className="pc-system-name">ERP连锁管理</div>
+          <button type="button"><ClipboardList size={18} />看板</button>
+          <button type="button" className="active"><Truck size={18} />配送<ChevronRight size={15} /></button>
+          <div className="pc-submenu"><span>业务操作</span><b>业务设置</b><span>配送参数</span><span>门店订单</span></div>
+          <button type="button"><Boxes size={18} />采购</button>
+          <button type="button"><Settings size={18} />基础设置</button>
+        </aside>
+        <section className="pc-main">
+          <nav className="pc-page-tabs"><span>SCM看板</span><span>门店订单</span><span className="active">品牌物料补发配置 <X size={13} /></span></nav>
+          <div className="pc-content-card">
+            <div className="pc-title-row">
+              <div><p className="pc-breadcrumb">配送 / 业务设置</p><h1>品牌物料补发配置</h1></div>
+              <a href="?view=app">查看 APP 申请端 <ChevronRight size={15} /></a>
+            </div>
+            <div className="pc-config-tabs">
+              <button type="button" className={tab === 'reason' ? 'active' : ''} onClick={() => { setTab('reason'); setKeyword(''); }}>补发原因</button>
+              <button type="button" className={tab === 'approval' ? 'active' : ''} onClick={() => { setTab('approval'); setKeyword(''); }}>审批配置</button>
+            </div>
+
+            {tab === 'reason' ? (
+              <>
+                <div className="pc-filter-panel">
+                  <label>原因编码/名称<input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="请输入编码或名称" /></label>
+                  <label>状态<select defaultValue="启用"><option>启用</option><option>停用</option><option>全部</option></select></label>
+                  <label>应用组织<button type="button" className="pc-picker">请选择二级组织 <Search size={14} /></button></label>
+                  <label>绑定商品<button type="button" className="pc-picker">请选择商品 <Search size={14} /></button></label>
+                  <div className="pc-filter-actions"><button type="button" className="pc-primary" onClick={() => showToast(`已查询到 ${filteredReasons.length} 条配置`)}><Search size={15} />查询</button><button type="button" onClick={() => setKeyword('')}><RotateCcw size={15} />重置</button></div>
+                </div>
+                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => setDrawer({ kind: 'reason', mode: 'new' })}><Plus size={16} />新增</button><button type="button" onClick={() => showToast('请选择需要启用或停用的配置')}><Power size={15} />启用/停用</button><button type="button" onClick={() => showToast('已打开配置修改记录')}><History size={15} />修改记录</button><span>原因只定义业务白名单，申请与出单仍按门店和实际发货仓动态校验。</span></div>
+                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" /></th><th>原因编码</th><th>原因名称</th><th>原因说明</th><th>应用组织</th><th>绑定商品数</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{filteredReasons.map((item) => <tr key={item.code}><td><input type="checkbox" /></td><td><a>{item.code}</a></td><td>{item.name}</td><td>{item.description}</td><td>{item.org}</td><td><button className="pc-link" type="button" onClick={() => setDrawer({ kind: 'reason', mode: 'edit', record: item })}>{item.products} 个商品</button></td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => setDrawer({ kind: 'reason', mode: 'edit', record: item })}>编辑</button><button className="pc-link" type="button" onClick={() => toggleReason(item.code)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>)}</tbody></table></div>
+              </>
+            ) : (
+              <>
+                <div className="pc-filter-panel approval-filter">
+                  <label>二级组织<button type="button" className="pc-picker">请选择二级组织 <Search size={14} /></button></label>
+                  <label>补发原因<select><option>全部原因</option><option>物料破损补发</option><option>新店开业补发</option></select></label>
+                  <label>状态<select defaultValue="启用"><option>启用</option><option>停用</option><option>全部</option></select></label>
+                  <div className="pc-filter-actions"><button type="button" className="pc-primary" onClick={() => showToast(`已查询到 ${approvals.length} 条配置`)}><Search size={15} />查询</button><button type="button"><RotateCcw size={15} />重置</button></div>
+                </div>
+                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => setDrawer({ kind: 'approval', mode: 'new' })}><Plus size={16} />新增审批配置</button><button type="button" onClick={() => showToast('已打开配置修改记录')}><History size={15} />修改记录</button><span><AlertTriangle size={14} /> 未匹配到有效配置时，门店申请将被阻止提交。</span></div>
+                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" /></th><th>二级组织</th><th>补发原因</th><th>审批方式</th><th>审批模板</th><th>生效时间</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{approvals.map((item) => <tr key={`${item.org}${item.reason}`}><td><input type="checkbox" /></td><td>{item.org}</td><td>{item.reason}</td><td>{item.method}</td><td><a>{item.template}</a></td><td>{item.validity}</td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => { setApprovalMethod(item.method); setDrawer({ kind: 'approval', mode: 'edit', record: item }); }}>编辑</button><button className="pc-link" type="button" onClick={() => toggleApproval(item)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>)}</tbody></table></div>
+              </>
+            )}
+            <div className="pc-pagination"><span>共 {tab === 'reason' ? filteredReasons.length : approvals.length} 条</span><button type="button">1</button><span>200 条/页</span></div>
+          </div>
+        </section>
+      </div>
+
+      {drawer && <div className="pc-drawer-mask"><aside className="pc-drawer">
+        <header><div><h2>{drawer.mode === 'new' ? '新增' : '编辑'}{drawer.kind === 'reason' ? '补发原因' : '审批配置'}</h2><p>{drawer.kind === 'reason' ? '配置申请端可选原因与允许补发的商品范围' : '唯一键：二级组织 + 补发原因'}</p></div><button type="button" onClick={() => setDrawer(null)}><X size={21} /></button></header>
+        {drawer.kind === 'reason' ? <div className="pc-drawer-body">
+          {drawer.mode === 'edit' && <label>原因编码<input value={drawer.record.code} disabled /></label>}
+          <label>原因名称 <i>*</i><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
+          <label>原因说明<textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
+          <label>应用组织 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
+          <div className="pc-binding-title"><span>绑定商品 <i>*</i></span><button type="button" onClick={() => setExtraProduct(true)}><Plus size={15} />添加商品</button></div>
+          <table className="pc-mini-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>规格</th><th>操作</th></tr></thead><tbody><tr><td>SP-202608-001</td><td>会员权益卡（新版）</td><td>100 张 / 包</td><td><button type="button">移除</button></td></tr>{extraProduct && <tr><td>SP-202608-016</td><td>会员活动立牌</td><td>A4 / 亚克力</td><td><button type="button" onClick={() => setExtraProduct(false)}>移除</button></td></tr>}</tbody></table>
+          <label>状态 <i>*</i><span className="pc-radios"><b><input type="radio" name="reason-status" defaultChecked />启用</b><b><input type="radio" name="reason-status" />停用</b></span></label>
+          <div className="pc-inline-tip"><Info size={16} />商品白名单不会跳过停止要货、停售、配送日及订购属性校验。</div>
+        </div> : <div className="pc-drawer-body">
+          <label>二级组织 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
+          <label>补发原因 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.reason || '物料破损补发'}<ChevronDown size={15} /></button></label>
+          <label>审批方式 <i>*</i><span className="pc-radios"><b><input type="radio" name="approval-method" checked={approvalMethod === '审批模板'} onChange={() => setApprovalMethod('审批模板')} />审批模板</b><b><input type="radio" name="approval-method" checked={approvalMethod === '无需审批'} onChange={() => setApprovalMethod('无需审批')} />无需审批</b></span></label>
+          {approvalMethod === '审批模板' && <label>审批模板 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.template || '品牌物料补发审批-华北'}<ChevronDown size={15} /></button></label>}
+          <label>生效时间<input type="datetime-local" defaultValue="2026-08-09T00:00" /></label>
+          <label>失效时间<input type="datetime-local" /></label>
+          <label>状态 <i>*</i><span className="pc-radios"><b><input type="radio" name="approval-status" defaultChecked />启用</b><b><input type="radio" name="approval-status" />停用</b></span></label>
+          <div className="pc-inline-tip warning"><AlertTriangle size={16} />相同二级组织与原因的有效期不得重叠；配置仅影响新提交申请。</div>
+        </div>}
+        <footer><button type="button" onClick={() => setDrawer(null)}>取消</button><button type="button" className="pc-primary" onClick={saveDrawer}>保存</button></footer>
+      </aside></div>}
+      {pcToast && <div className="pc-toast"><CircleCheck size={17} />{pcToast}</div>}
+    </main>
+  );
+}
+
+function MobileApp() {
   const [reason, setReason] = useState('物料破损补发');
   const [reasonOpen, setReasonOpen] = useState(false);
   const [items, setItems] = useState([
@@ -123,4 +263,9 @@ export function App() {
       {pickerOpen && <div className="modal-mask"><section className="picker-sheet"><div className="sheet-handle" /><div className="picker-head"><h2>选择补发物料</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div><p className="picker-help">已按“{reason}”过滤可补发商品</p><div className="picker-list">{availableItems.map((item) => <button type="button" key={item.id} disabled={items.some((current) => current.id === item.id)} onClick={() => addItem(item)}><span><b>{item.name}</b><small>{item.spec}</small></span>{items.some((current) => current.id === item.id) ? <i>已添加</i> : <Plus size={19} />}</button>)}</div></section></div>}
     </main>
   );
+}
+
+export function App() {
+  const view = new URLSearchParams(window.location.search).get('view');
+  return view === 'pc' ? <PcConfig /> : <MobileApp />;
 }
