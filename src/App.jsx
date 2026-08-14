@@ -26,15 +26,17 @@ import {
   X,
 } from 'lucide-react';
 
+const productAsset = (filename) => `${import.meta.env.BASE_URL}assets/${filename}`;
+
 const reasonProducts = {
   '物料破损补发': [
-    { id: 'card', name: '会员权益卡（新版）', spec: '100 张 / 包', code: 'SP-202608-001', limit: 2 },
-    { id: 'stand', name: '会员活动立牌', spec: 'A4 / 亚克力', code: 'SP-202608-016', limit: 4 },
-    { id: 'poster', name: '会员活动海报', spec: 'A3 / 20 张', code: 'SP-202608-021', limit: 2 },
+    { id: 'card', name: '会员权益卡（新版）', spec: '100 张 / 包', code: 'SP-202608-001', barcode: '6901234568001', image: productAsset('product-member-card.png'), limit: 2 },
+    { id: 'stand', name: '会员活动立牌', spec: 'A4 / 亚克力', code: 'SP-202608-016', barcode: '6901234568016', image: productAsset('product-acrylic-stand.png'), limit: 4 },
+    { id: 'poster', name: '会员活动海报', spec: 'A3 / 20 张', code: 'SP-202608-021', barcode: '6901234568021', image: productAsset('product-poster.png'), limit: 2 },
   ],
   '新店开业补发': [
-    { id: 'card', name: '会员权益卡（新版）', spec: '100 张 / 包', code: 'SP-202608-001', limit: 5 },
-    { id: 'stand', name: '会员活动立牌', spec: 'A4 / 亚克力', code: 'SP-202608-016', limit: 8 },
+    { id: 'card', name: '会员权益卡（新版）', spec: '100 张 / 包', code: 'SP-202608-001', barcode: '6901234568001', image: productAsset('product-member-card.png'), limit: 5 },
+    { id: 'stand', name: '会员活动立牌', spec: 'A4 / 亚克力', code: 'SP-202608-016', barcode: '6901234568016', image: productAsset('product-acrylic-stand.png'), limit: 8 },
   ],
 };
 
@@ -184,10 +186,17 @@ function MobileApp() {
     { ...reasonProducts['物料破损补发'][0], qty: 1, proof: true },
   ]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerKeyword, setPickerKeyword] = useState('');
+  const [pickerSelectedIds, setPickerSelectedIds] = useState([]);
   const [notice, setNotice] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
   const availableItems = reasonProducts[reason];
+  const filteredAvailableItems = useMemo(() => {
+    const keyword = pickerKeyword.trim().toLowerCase();
+    if (!keyword) return availableItems;
+    return availableItems.filter((item) => `${item.code} ${item.name} ${item.barcode}`.toLowerCase().includes(keyword));
+  }, [availableItems, pickerKeyword]);
   const totalQty = useMemo(() => items.reduce((sum, item) => sum + item.qty, 0), [items]);
 
   const changeReason = (nextReason) => {
@@ -198,8 +207,22 @@ function MobileApp() {
   };
 
   const updateItem = (id, patch) => setItems((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
-  const addItem = (item) => {
-    if (!items.some((current) => current.id === item.id)) setItems((current) => [...current, { ...item, qty: 1, proof: false }]);
+  const openPicker = () => {
+    setPickerKeyword('');
+    setPickerSelectedIds(items.map((item) => item.id));
+    setPickerOpen(true);
+  };
+  const togglePickerItem = (id) => {
+    setPickerSelectedIds((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  };
+  const confirmPicker = () => {
+    setItems((current) => availableItems
+      .filter((item) => pickerSelectedIds.includes(item.id))
+      .map((item) => {
+        const existing = current.find((value) => value.id === item.id);
+        return existing ? { ...item, qty: existing.qty, proof: existing.proof } : { ...item, qty: 1, proof: false };
+      }));
+    setNotice('');
     setPickerOpen(false);
   };
   const submit = () => {
@@ -254,13 +277,27 @@ function MobileApp() {
               <p className="limit-note">按当前门店订购属性，本次最多可申请 {item.limit} 件</p>
             </article>
           ))}
-          <button type="button" className="add-material" onClick={() => setPickerOpen(true)}><Plus size={18} />添加补发物料</button>
+          <button type="button" className="add-material" onClick={openPicker}><Plus size={18} />添加补发物料</button>
         </section>
         <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“品牌物料补发”的 0 元仓配门店订单。若审批期间配送日或订购属性发生变化，将提示处理，不会静默减少数量。</p></section>
       </div>
       {notice && <div className="toast" role="status">{notice}</div>}
       <footer className="bottom-bar"><button type="button" className="draft-button">保存草稿</button><button type="button" className="submit-button" onClick={submit}>提交审批</button></footer>
-      {pickerOpen && <div className="modal-mask"><section className="picker-sheet"><div className="sheet-handle" /><div className="picker-head"><h2>选择补发物料</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div><p className="picker-help">已按“{reason}”过滤可补发商品</p><div className="picker-list">{availableItems.map((item) => <button type="button" key={item.id} disabled={items.some((current) => current.id === item.id)} onClick={() => addItem(item)}><span><b>{item.name}</b><small>{item.spec}</small></span>{items.some((current) => current.id === item.id) ? <i>已添加</i> : <Plus size={19} />}</button>)}</div></section></div>}
+      {pickerOpen && <div className="modal-mask"><section className="picker-sheet" role="dialog" aria-modal="true" aria-label="选择补发物料">
+        <div className="sheet-handle" />
+        <div className="picker-head"><h2>选择补发物料</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div>
+        <p className="picker-help">已按“{reason}”过滤可补发商品</p>
+        <label className="picker-search"><Search size={17} /><input autoFocus value={pickerKeyword} onChange={(event) => setPickerKeyword(event.target.value)} placeholder="搜索商品编码 / 名称 / 条码" />{pickerKeyword && <button type="button" aria-label="清空搜索" onClick={() => setPickerKeyword('')}><X size={16} /></button>}</label>
+        <div className="picker-list">{filteredAvailableItems.map((item) => {
+          const selected = pickerSelectedIds.includes(item.id);
+          return <button type="button" className={selected ? 'selected' : ''} key={item.id} aria-pressed={selected} onClick={() => togglePickerItem(item.id)}>
+            <img src={item.image} alt="" />
+            <span className="picker-product"><b>{item.name}</b><small>{item.spec}</small><small>{item.code}</small></span>
+            <span className="picker-check" aria-hidden="true">{selected && <CircleCheck size={20} />}</span>
+          </button>;
+        })}{filteredAvailableItems.length === 0 && <div className="picker-empty"><Search size={25} /><p>未找到匹配商品</p><span>请尝试其他商品编码、名称或条码</span></div>}</div>
+        <footer className="picker-footer"><span>已选 <b>{pickerSelectedIds.length}</b> 项</span><button type="button" className="picker-cancel" onClick={() => setPickerOpen(false)}>取消</button><button type="button" className="picker-confirm" onClick={confirmPicker}>确定</button></footer>
+      </section></div>}
     </main>
   );
 }
