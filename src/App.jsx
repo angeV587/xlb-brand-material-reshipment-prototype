@@ -233,7 +233,6 @@ function PcConfig() {
           <div className="pc-content-card">
             <div className="pc-title-row">
               <div><p className="pc-breadcrumb">配送 / 业务设置</p><h1>品牌物料补发配置</h1></div>
-              <a href="?view=app">查看 APP 申请端 <ChevronRight size={15} /></a>
             </div>
             <div className="pc-config-tabs">
               <button type="button" className={tab === 'reason' ? 'active' : ''} onClick={() => switchConfigTab('reason')}>补发原因</button>
