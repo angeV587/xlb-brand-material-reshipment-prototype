@@ -15,7 +15,6 @@ import {
   MapPin,
   Minus,
   PackagePlus,
-  Power,
   Plus,
   RotateCcw,
   Search,
@@ -73,11 +72,18 @@ const pcPermissionProducts = [
   { id: 'pc-cookie', code: 'SP-202607-143', barcode: '6901234568143', name: '黄油风味曲奇', category: '休闲食品', department: '食品部', spec: '400g / 盒', status: '启用' },
 ];
 
+const approvalRecordKey = (item) => `${item.org}|${item.reason}`;
+
 function PcConfig() {
   const [tab, setTab] = useState('reason');
   const [reasons, setReasons] = useState(seedReasons);
   const [approvals, setApprovals] = useState(seedApprovals);
   const [keyword, setKeyword] = useState('');
+  const [selectedReasonCodes, setSelectedReasonCodes] = useState([]);
+  const [selectedApprovalKeys, setSelectedApprovalKeys] = useState([]);
+  const [changeLogOpen, setChangeLogOpen] = useState(false);
+  const [expandedChangeRows, setExpandedChangeRows] = useState([]);
+  const [copiedChangeRow, setCopiedChangeRow] = useState(null);
   const [drawer, setDrawer] = useState(null);
   const [boundProductIds, setBoundProductIds] = useState([]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
@@ -88,7 +94,22 @@ function PcConfig() {
   const [approvalMethod, setApprovalMethod] = useState('审批模板');
   const [pcToast, setPcToast] = useState('');
 
-  const filteredReasons = reasons.filter((item) => `${item.code}${item.name}`.includes(keyword.trim()));
+  const filteredReasons = reasons.filter((item) => item.name.includes(keyword.trim()));
+  const selectedKeys = tab === 'reason' ? selectedReasonCodes : selectedApprovalKeys;
+  const allReasonsSelected = filteredReasons.length > 0 && filteredReasons.every((item) => selectedReasonCodes.includes(item.code));
+  const allApprovalsSelected = approvals.length > 0 && approvals.every((item) => selectedApprovalKeys.includes(approvalRecordKey(item)));
+  const selectedConfig = tab === 'reason'
+    ? reasons.find((item) => selectedReasonCodes.includes(item.code))
+    : approvals.find((item) => selectedApprovalKeys.includes(approvalRecordKey(item)));
+  const changeLogRecords = selectedConfig ? (tab === 'reason' ? [
+    { time: '2026-08-07 14:20:36', user: '王小安', detail: `状态：停用 → ${selectedConfig.status} ｜绑定商品：SP-202608-001,SP-202608-016 → SP-202608-001,SP-202608-016,SP-202608-021` },
+    { time: '2026-08-06 10:35:18', user: '李木子', detail: `应用组织：华东事业部 → ${selectedConfig.org}` },
+    { time: '2026-08-05 16:42:09', user: '王小安', detail: `原因说明：门店品牌物料破损 → ${selectedConfig.description}` },
+  ] : [
+    { time: '2026-08-07 15:05:22', user: '王小安', detail: `审批模板：品牌物料补发审批-v1 → ${selectedConfig.template} ｜状态：停用 → ${selectedConfig.status}` },
+    { time: '2026-08-06 11:42:08', user: '李木子', detail: `审批方式：无需审批 → ${selectedConfig.method}` },
+    { time: '2026-08-05 09:18:37', user: '王小安', detail: `生效时间：2026-07-01 00:00 → ${selectedConfig.validity}` },
+  ]) : [];
   const boundProducts = pcPermissionProducts.filter((item) => boundProductIds.includes(item.id));
   const filteredPermissionProducts = useMemo(() => {
     const normalizedKeyword = productKeyword.trim().toLowerCase();
@@ -103,6 +124,43 @@ function PcConfig() {
   const showToast = (text) => {
     setPcToast(text);
     window.setTimeout(() => setPcToast(''), 2400);
+  };
+  const switchConfigTab = (nextTab) => {
+    setTab(nextTab);
+    setKeyword('');
+    setSelectedReasonCodes([]);
+    setSelectedApprovalKeys([]);
+    setChangeLogOpen(false);
+  };
+  const toggleReasonSelection = (code) => {
+    setSelectedReasonCodes((current) => current.includes(code) ? current.filter((item) => item !== code) : [...current, code]);
+  };
+  const toggleApprovalSelection = (key) => {
+    setSelectedApprovalKeys((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current, key]);
+  };
+  const toggleAllReasons = () => {
+    const visibleCodes = filteredReasons.map((item) => item.code);
+    setSelectedReasonCodes((current) => allReasonsSelected ? current.filter((code) => !visibleCodes.includes(code)) : [...new Set([...current, ...visibleCodes])]);
+  };
+  const toggleAllApprovals = () => {
+    const visibleKeys = approvals.map(approvalRecordKey);
+    setSelectedApprovalKeys(allApprovalsSelected ? [] : visibleKeys);
+  };
+  const openChangeLog = () => {
+    if (selectedKeys.length !== 1) return;
+    setExpandedChangeRows([]);
+    setCopiedChangeRow(null);
+    setChangeLogOpen(true);
+    window.setTimeout(() => document.querySelector('.pc-change-log-close')?.focus(), 0);
+  };
+  const copyChangeDetail = async (detail, index) => {
+    try {
+      await navigator.clipboard.writeText(detail);
+    } catch {
+      // The visual confirmation remains available when a browser blocks clipboard access.
+    }
+    setCopiedChangeRow(index);
+    window.setTimeout(() => setCopiedChangeRow(null), 1600);
   };
   const openReasonDrawer = (mode, record) => {
     const initialCount = mode === 'new' ? 1 : Math.min(record?.products || 1, pcPermissionProducts.length);
@@ -178,21 +236,21 @@ function PcConfig() {
               <a href="?view=app">查看 APP 申请端 <ChevronRight size={15} /></a>
             </div>
             <div className="pc-config-tabs">
-              <button type="button" className={tab === 'reason' ? 'active' : ''} onClick={() => { setTab('reason'); setKeyword(''); }}>补发原因</button>
-              <button type="button" className={tab === 'approval' ? 'active' : ''} onClick={() => { setTab('approval'); setKeyword(''); }}>审批配置</button>
+              <button type="button" className={tab === 'reason' ? 'active' : ''} onClick={() => switchConfigTab('reason')}>补发原因</button>
+              <button type="button" className={tab === 'approval' ? 'active' : ''} onClick={() => switchConfigTab('approval')}>审批配置</button>
             </div>
 
             {tab === 'reason' ? (
               <>
                 <div className="pc-filter-panel">
-                  <label>原因编码/名称<input value={keyword} onChange={(event) => setKeyword(event.target.value)} placeholder="请输入编码或名称" /></label>
+                  <label>原因名称<input value={keyword} onChange={(event) => { setKeyword(event.target.value); setSelectedReasonCodes([]); }} placeholder="请输入原因名称" /></label>
                   <label>状态<select defaultValue="启用"><option>启用</option><option>停用</option><option>全部</option></select></label>
                   <label>应用组织<button type="button" className="pc-picker">请选择二级组织 <Search size={14} /></button></label>
                   <label>绑定商品<button type="button" className="pc-picker">请选择商品 <Search size={14} /></button></label>
-                  <div className="pc-filter-actions"><button type="button" className="pc-primary" onClick={() => showToast(`已查询到 ${filteredReasons.length} 条配置`)}><Search size={15} />查询</button><button type="button" onClick={() => setKeyword('')}><RotateCcw size={15} />重置</button></div>
+                  <div className="pc-filter-actions"><button type="button" className="pc-primary" onClick={() => { setSelectedReasonCodes([]); showToast(`已查询到 ${filteredReasons.length} 条配置`); }}><Search size={15} />查询</button><button type="button" onClick={() => { setKeyword(''); setSelectedReasonCodes([]); }}><RotateCcw size={15} />重置</button></div>
                 </div>
-                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => openReasonDrawer('new')}><Plus size={16} />新增</button><button type="button" onClick={() => showToast('请选择需要启用或停用的配置')}><Power size={15} />启用/停用</button><button type="button" onClick={() => showToast('已打开配置修改记录')}><History size={15} />修改记录</button><span>原因只定义业务白名单，申请与出单仍按门店和实际发货仓动态校验。</span></div>
-                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" /></th><th>原因编码</th><th>原因名称</th><th>原因说明</th><th>应用组织</th><th>绑定商品数</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{filteredReasons.map((item) => <tr key={item.code}><td><input type="checkbox" /></td><td><a>{item.code}</a></td><td>{item.name}</td><td>{item.description}</td><td>{item.org}</td><td><button className="pc-link" type="button" onClick={() => openReasonDrawer('edit', item)}>{item.products} 个商品</button></td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => openReasonDrawer('edit', item)}>编辑</button><button className="pc-link" type="button" onClick={() => toggleReason(item.code)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>)}</tbody></table></div>
+                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => openReasonDrawer('new')}><Plus size={16} />新增</button><button type="button" disabled={selectedReasonCodes.length !== 1} onClick={openChangeLog}><History size={15} />修改记录</button><span>原因只定义业务白名单，申请与出单仍按门店和实际发货仓动态校验。</span></div>
+                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" aria-label="全选补发原因" checked={allReasonsSelected} onChange={toggleAllReasons} /></th><th>原因编码</th><th>原因名称</th><th>原因说明</th><th>应用组织</th><th>绑定商品数</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{filteredReasons.map((item) => <tr key={item.code} className={selectedReasonCodes.includes(item.code) ? 'selected' : ''}><td><input type="checkbox" aria-label={`选择${item.name}`} checked={selectedReasonCodes.includes(item.code)} onChange={() => toggleReasonSelection(item.code)} /></td><td><a>{item.code}</a></td><td>{item.name}</td><td>{item.description}</td><td>{item.org}</td><td><button className="pc-link" type="button" onClick={() => openReasonDrawer('edit', item)}>{item.products} 个商品</button></td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => openReasonDrawer('edit', item)}>编辑</button><button className="pc-link" type="button" onClick={() => toggleReason(item.code)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>)}</tbody></table></div>
               </>
             ) : (
               <>
@@ -202,8 +260,11 @@ function PcConfig() {
                   <label>状态<select defaultValue="启用"><option>启用</option><option>停用</option><option>全部</option></select></label>
                   <div className="pc-filter-actions"><button type="button" className="pc-primary" onClick={() => showToast(`已查询到 ${approvals.length} 条配置`)}><Search size={15} />查询</button><button type="button"><RotateCcw size={15} />重置</button></div>
                 </div>
-                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => setDrawer({ kind: 'approval', mode: 'new' })}><Plus size={16} />新增审批配置</button><button type="button" onClick={() => showToast('已打开配置修改记录')}><History size={15} />修改记录</button><span><AlertTriangle size={14} /> 未匹配到有效配置时，门店申请将被阻止提交。</span></div>
-                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" /></th><th>二级组织</th><th>补发原因</th><th>审批方式</th><th>审批模板</th><th>生效时间</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{approvals.map((item) => <tr key={`${item.org}${item.reason}`}><td><input type="checkbox" /></td><td>{item.org}</td><td>{item.reason}</td><td>{item.method}</td><td><a>{item.template}</a></td><td>{item.validity}</td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => { setApprovalMethod(item.method); setDrawer({ kind: 'approval', mode: 'edit', record: item }); }}>编辑</button><button className="pc-link" type="button" onClick={() => toggleApproval(item)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>)}</tbody></table></div>
+                <div className="pc-toolbar"><button type="button" className="pc-primary" onClick={() => setDrawer({ kind: 'approval', mode: 'new' })}><Plus size={16} />新增审批配置</button><button type="button" disabled={selectedApprovalKeys.length !== 1} onClick={openChangeLog}><History size={15} />修改记录</button><span><AlertTriangle size={14} /> 未匹配到有效配置时，门店申请将被阻止提交。</span></div>
+                <div className="pc-table-wrap"><table className="pc-table"><thead><tr><th><input type="checkbox" aria-label="全选审批配置" checked={allApprovalsSelected} onChange={toggleAllApprovals} /></th><th>二级组织</th><th>补发原因</th><th>审批方式</th><th>审批模板</th><th>生效时间</th><th>状态</th><th>修改人 / 修改时间</th><th>操作</th></tr></thead><tbody>{approvals.map((item) => {
+                  const itemKey = approvalRecordKey(item);
+                  return <tr key={itemKey} className={selectedApprovalKeys.includes(itemKey) ? 'selected' : ''}><td><input type="checkbox" aria-label={`选择${item.org}${item.reason}`} checked={selectedApprovalKeys.includes(itemKey)} onChange={() => toggleApprovalSelection(itemKey)} /></td><td>{item.org}</td><td>{item.reason}</td><td>{item.method}</td><td><a>{item.template}</a></td><td>{item.validity}</td><td><span className={`pc-status ${item.status === '启用' ? 'on' : 'off'}`}>{item.status}</span></td><td>{item.editor}<small>{item.time}</small></td><td><button className="pc-link" type="button" onClick={() => { setApprovalMethod(item.method); setDrawer({ kind: 'approval', mode: 'edit', record: item }); }}>编辑</button><button className="pc-link" type="button" onClick={() => toggleApproval(item)}>{item.status === '启用' ? '停用' : '启用'}</button></td></tr>;
+                })}</tbody></table></div>
               </>
             )}
             <div className="pc-pagination"><span>共 {tab === 'reason' ? filteredReasons.length : approvals.length} 条</span><button type="button">1</button><span>200 条/页</span></div>
@@ -254,6 +315,20 @@ function PcConfig() {
             <div className="pc-product-pagination"><span>共 {filteredPermissionProducts.length} 条</span><button type="button">1</button><span>20 条/页</span></div>
           </div>
           <footer><span>已选 <b>{draftProductIds.length}</b> 个商品</span><button type="button" onClick={() => setProductPickerOpen(false)}>取消</button><button type="button" className="pc-primary" onClick={confirmProductPicker}>确定</button></footer>
+        </section>
+      </div>}
+      {changeLogOpen && <div className="pc-change-log-mask" onClick={() => setChangeLogOpen(false)}>
+        <section className="pc-change-log-modal" role="dialog" aria-modal="true" aria-labelledby="pc-change-log-title" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { if (event.key === 'Escape') setChangeLogOpen(false); }}>
+          <header><h2 id="pc-change-log-title">修改记录</h2><button className="pc-change-log-close" type="button" onClick={() => setChangeLogOpen(false)}>关闭</button></header>
+          <div className="pc-change-log-area"><div className="pc-change-log-scroll"><table className="pc-change-log-table">
+            <colgroup><col className="pc-log-sequence" /><col className="pc-log-time" /><col className="pc-log-user" /><col /></colgroup>
+            <thead><tr><th>序号</th><th>修改时间</th><th>修改人</th><th>操作明细</th></tr></thead>
+            <tbody>{changeLogRecords.map((record, index) => {
+              const expanded = expandedChangeRows.includes(index);
+              return <tr key={`${record.time}-${index}`}><td>{index + 1}</td><td>{record.time}</td><td>{record.user}</td><td className={`pc-change-detail ${expanded ? 'expanded' : ''}`}><div><span>{record.detail}</span><b><button type="button" aria-expanded={expanded} onClick={() => setExpandedChangeRows((current) => current.includes(index) ? current.filter((item) => item !== index) : [...current, index])}>{expanded ? '收起' : '展开'}</button><button type="button" onClick={() => copyChangeDetail(record.detail, index)}>{copiedChangeRow === index ? '已复制' : '复制'}</button></b></div></td></tr>;
+            })}</tbody>
+          </table></div></div>
+          <footer><span>共{changeLogRecords.length}条</span><span>‹</span><b>1</b><span>›</span></footer>
         </section>
       </div>}
       {pcToast && <div className="pc-toast"><CircleCheck size={17} />{pcToast}</div>}
