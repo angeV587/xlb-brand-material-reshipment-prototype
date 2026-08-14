@@ -154,21 +154,21 @@ function PcConfig() {
       {drawer && <div className="pc-drawer-mask"><aside className="pc-drawer">
         <header><div><h2>{drawer.mode === 'new' ? '新增' : '编辑'}{drawer.kind === 'reason' ? '补发原因' : '审批配置'}</h2><p>{drawer.kind === 'reason' ? '配置申请端可选原因与允许补发的商品范围' : '唯一键：二级组织 + 补发原因'}</p></div><button type="button" onClick={() => setDrawer(null)}><X size={21} /></button></header>
         {drawer.kind === 'reason' ? <div className="pc-drawer-body">
-          <label>原因名称 <i>*</i><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
-          <label>原因说明<textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
-          <label>应用组织 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
+          <label><span className="pc-field-label">原因名称 <i>*</i></span><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
+          <label><span className="pc-field-label">原因说明</span><textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
+          <label><span className="pc-field-label">应用组织 <i>*</i></span><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
           <div className="pc-binding-title"><span>绑定商品 <i>*</i></span><button type="button" onClick={() => setExtraProduct(true)}><Plus size={15} />添加商品</button></div>
           <table className="pc-mini-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>规格</th><th>操作</th></tr></thead><tbody><tr><td>SP-202608-001</td><td>会员权益卡（新版）</td><td>100 张 / 包</td><td><button type="button">移除</button></td></tr>{extraProduct && <tr><td>SP-202608-016</td><td>会员活动立牌</td><td>A4 / 亚克力</td><td><button type="button" onClick={() => setExtraProduct(false)}>移除</button></td></tr>}</tbody></table>
-          <label>状态 <i>*</i><span className="pc-radios"><b><input type="radio" name="reason-status" defaultChecked />启用</b><b><input type="radio" name="reason-status" />停用</b></span></label>
+          <label><span className="pc-field-label">状态 <i>*</i></span><span className="pc-radios"><b><input type="radio" name="reason-status" defaultChecked />启用</b><b><input type="radio" name="reason-status" />停用</b></span></label>
           <div className="pc-inline-tip"><Info size={16} />商品白名单不会跳过停止要货、停售、配送日及订购属性校验。</div>
         </div> : <div className="pc-drawer-body">
-          <label>二级组织 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
-          <label>补发原因 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.reason || '物料破损补发'}<ChevronDown size={15} /></button></label>
-          <label>审批方式 <i>*</i><span className="pc-radios"><b><input type="radio" name="approval-method" checked={approvalMethod === '审批模板'} onChange={() => setApprovalMethod('审批模板')} />审批模板</b><b><input type="radio" name="approval-method" checked={approvalMethod === '无需审批'} onChange={() => setApprovalMethod('无需审批')} />无需审批</b></span></label>
-          {approvalMethod === '审批模板' && <label>审批模板 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.template || '品牌物料补发审批-华北'}<ChevronDown size={15} /></button></label>}
-          <label>生效时间<input type="datetime-local" defaultValue="2026-08-09T00:00" /></label>
-          <label>失效时间<input type="datetime-local" /></label>
-          <label>状态 <i>*</i><span className="pc-radios"><b><input type="radio" name="approval-status" defaultChecked />启用</b><b><input type="radio" name="approval-status" />停用</b></span></label>
+          <label><span className="pc-field-label">二级组织 <i>*</i></span><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
+          <label><span className="pc-field-label">补发原因 <i>*</i></span><button className="pc-select-wide" type="button">{drawer.record?.reason || '物料破损补发'}<ChevronDown size={15} /></button></label>
+          <label><span className="pc-field-label">审批方式 <i>*</i></span><span className="pc-radios"><b><input type="radio" name="approval-method" checked={approvalMethod === '审批模板'} onChange={() => setApprovalMethod('审批模板')} />审批模板</b><b><input type="radio" name="approval-method" checked={approvalMethod === '无需审批'} onChange={() => setApprovalMethod('无需审批')} />无需审批</b></span></label>
+          {approvalMethod === '审批模板' && <label><span className="pc-field-label">审批模板 <i>*</i></span><button className="pc-select-wide" type="button">{drawer.record?.template || '品牌物料补发审批-华北'}<ChevronDown size={15} /></button></label>}
+          <label><span className="pc-field-label">生效时间</span><input type="datetime-local" defaultValue="2026-08-09T00:00" /></label>
+          <label><span className="pc-field-label">失效时间</span><input type="datetime-local" /></label>
+          <label><span className="pc-field-label">状态 <i>*</i></span><span className="pc-radios"><b><input type="radio" name="approval-status" defaultChecked />启用</b><b><input type="radio" name="approval-status" />停用</b></span></label>
           <div className="pc-inline-tip warning"><AlertTriangle size={16} />相同二级组织与原因的有效期不得重叠；配置仅影响新提交申请。</div>
         </div>}
         <footer><button type="button" onClick={() => setDrawer(null)}>取消</button><button type="button" className="pc-primary" onClick={saveDrawer}>保存</button></footer>
