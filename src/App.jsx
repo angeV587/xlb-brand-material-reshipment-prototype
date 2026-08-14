@@ -154,7 +154,6 @@ function PcConfig() {
       {drawer && <div className="pc-drawer-mask"><aside className="pc-drawer">
         <header><div><h2>{drawer.mode === 'new' ? '新增' : '编辑'}{drawer.kind === 'reason' ? '补发原因' : '审批配置'}</h2><p>{drawer.kind === 'reason' ? '配置申请端可选原因与允许补发的商品范围' : '唯一键：二级组织 + 补发原因'}</p></div><button type="button" onClick={() => setDrawer(null)}><X size={21} /></button></header>
         {drawer.kind === 'reason' ? <div className="pc-drawer-body">
-          {drawer.mode === 'edit' && <label>原因编码<input value={drawer.record.code} disabled /></label>}
           <label>原因名称 <i>*</i><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
           <label>原因说明<textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
           <label>应用组织 <i>*</i><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
