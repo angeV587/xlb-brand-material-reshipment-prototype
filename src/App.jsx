@@ -27,6 +27,29 @@ import {
 
 const productAsset = (filename) => `${import.meta.env.BASE_URL}assets/${filename}`;
 
+const pcOrganizations = [
+  { id: 'org-east', code: 'ORG-HD', name: '华东事业部', level: '二级组织' },
+  { id: 'org-south', code: 'ORG-HN', name: '华南事业部', level: '二级组织' },
+  { id: 'org-north', code: 'ORG-HB', name: '华北事业部', level: '二级组织' },
+  { id: 'org-central', code: 'ORG-HZ', name: '华中事业部', level: '二级组织' },
+  { id: 'org-southwest', code: 'ORG-XN', name: '西南事业部', level: '二级组织' },
+];
+
+const allPcOrganizationIds = pcOrganizations.map((item) => item.id);
+
+const parseOrganizationIds = (displayName = '') => {
+  if (displayName === '全部二级组织') return allPcOrganizationIds;
+  return pcOrganizations.filter((item) => displayName.includes(item.name.replace('事业部', ''))).map((item) => item.id);
+};
+
+const formatOrganizationNames = (ids) => {
+  const selected = pcOrganizations.filter((item) => ids.includes(item.id));
+  if (selected.length === pcOrganizations.length) return '全部二级组织';
+  if (selected.length === 0) return '请选择二级组织';
+  if (selected.length <= 2) return selected.map((item) => item.name).join('、');
+  return `${selected[0].name}等 ${selected.length} 个`;
+};
+
 const reasonProducts = {
   '物料破损补发': [
     { id: 'card', name: '会员权益卡（新版）', spec: '100 张 / 包', code: 'SP-202608-001', barcode: '6901234568001', image: productAsset('product-member-card.png'), limit: 2 },
@@ -50,9 +73,9 @@ function QuantityControl({ value, max, onChange }) {
 }
 
 const seedReasons = [
-  { code: 'BFYY0001', name: '物料破损补发', description: '已到店品牌物料发生破损', org: '全部二级组织', products: 3, status: '启用', editor: '王小安', time: '2026-08-07 14:20' },
-  { code: 'BFYY0002', name: '新店开业补发', description: '新店开业首批物料缺失或破损', org: '华东、华南事业部', products: 5, status: '启用', editor: '李木子', time: '2026-08-06 09:35' },
-  { code: 'BFYY0003', name: '版本换新补发', description: '旧版物料统一换新', org: '华东事业部', products: 2, status: '停用', editor: '王小安', time: '2026-07-28 17:10' },
+  { code: 'BFYY0001', name: '物料破损补发', description: '已到店品牌物料发生破损', org: '全部二级组织', orgIds: allPcOrganizationIds, products: 3, status: '启用', editor: '王小安', time: '2026-08-07 14:20' },
+  { code: 'BFYY0002', name: '新店开业补发', description: '新店开业首批物料缺失或破损', org: '华东事业部、华南事业部', orgIds: ['org-east', 'org-south'], products: 5, status: '启用', editor: '李木子', time: '2026-08-06 09:35' },
+  { code: 'BFYY0003', name: '版本换新补发', description: '旧版物料统一换新', org: '华东事业部', orgIds: ['org-east'], products: 2, status: '停用', editor: '王小安', time: '2026-07-28 17:10' },
 ];
 
 const seedApprovals = [
@@ -85,6 +108,10 @@ function PcConfig() {
   const [expandedChangeRows, setExpandedChangeRows] = useState([]);
   const [copiedChangeRow, setCopiedChangeRow] = useState(null);
   const [drawer, setDrawer] = useState(null);
+  const [reasonOrgIds, setReasonOrgIds] = useState([]);
+  const [orgPickerOpen, setOrgPickerOpen] = useState(false);
+  const [orgKeyword, setOrgKeyword] = useState('');
+  const [draftReasonOrgIds, setDraftReasonOrgIds] = useState([]);
   const [boundProductIds, setBoundProductIds] = useState([]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [productKeyword, setProductKeyword] = useState('');
@@ -120,7 +147,12 @@ function PcConfig() {
       return matchesKeyword && matchesCategory && matchesDepartment;
     });
   }, [productCategory, productDepartment, productKeyword]);
+  const filteredOrganizations = useMemo(() => {
+    const normalizedKeyword = orgKeyword.trim().toLowerCase();
+    return pcOrganizations.filter((item) => !normalizedKeyword || `${item.code} ${item.name}`.toLowerCase().includes(normalizedKeyword));
+  }, [orgKeyword]);
   const allFilteredProductsSelected = filteredPermissionProducts.length > 0 && filteredPermissionProducts.every((item) => draftProductIds.includes(item.id));
+  const allFilteredOrganizationsSelected = filteredOrganizations.length > 0 && filteredOrganizations.every((item) => draftReasonOrgIds.includes(item.id));
   const showToast = (text) => {
     setPcToast(text);
     window.setTimeout(() => setPcToast(''), 2400);
@@ -164,12 +196,41 @@ function PcConfig() {
   };
   const openReasonDrawer = (mode, record) => {
     const initialCount = mode === 'new' ? 1 : Math.min(record?.products || 1, pcPermissionProducts.length);
+    const initialOrgIds = mode === 'new' ? ['org-north'] : (record?.orgIds || parseOrganizationIds(record?.org));
+    setReasonOrgIds(initialOrgIds);
+    setOrgPickerOpen(false);
     setBoundProductIds(pcPermissionProducts.slice(0, initialCount).map((item) => item.id));
     setDrawer({ kind: 'reason', mode, record });
   };
   const closeDrawer = () => {
     setDrawer(null);
     setProductPickerOpen(false);
+    setOrgPickerOpen(false);
+  };
+  const openOrganizationPicker = () => {
+    setOrgKeyword('');
+    setDraftReasonOrgIds(reasonOrgIds);
+    setOrgPickerOpen(true);
+    window.setTimeout(() => document.querySelector('[aria-label="搜索应用组织"]')?.focus(), 0);
+  };
+  const closeOrganizationPicker = () => {
+    setOrgPickerOpen(false);
+    window.setTimeout(() => document.querySelector('[aria-label="应用组织"]')?.focus(), 0);
+  };
+  const toggleDraftOrganization = (id) => {
+    setDraftReasonOrgIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  };
+  const toggleAllFilteredOrganizations = () => {
+    const filteredIds = filteredOrganizations.map((item) => item.id);
+    setDraftReasonOrgIds((current) => allFilteredOrganizationsSelected
+      ? current.filter((id) => !filteredIds.includes(id))
+      : [...new Set([...current, ...filteredIds])]);
+  };
+  const confirmOrganizationPicker = () => {
+    if (draftReasonOrgIds.length === 0) return;
+    setReasonOrgIds([...new Set(draftReasonOrgIds)]);
+    closeOrganizationPicker();
+    showToast(`已选择 ${draftReasonOrgIds.length} 个二级组织`);
   };
   const openProductPicker = () => {
     setProductKeyword('');
@@ -195,12 +256,22 @@ function PcConfig() {
   const toggleReason = (code) => setReasons((list) => list.map((item) => item.code === code ? { ...item, status: item.status === '启用' ? '停用' : '启用' } : item));
   const toggleApproval = (target) => setApprovals((list) => list.map((item) => item.org === target.org && item.reason === target.reason ? { ...item, status: item.status === '启用' ? '停用' : '启用' } : item));
   const saveDrawer = () => {
+    if (drawer.kind === 'reason' && reasonOrgIds.length === 0) {
+      showToast('请至少选择 1 个应用组织');
+      return;
+    }
     if (drawer.kind === 'reason' && boundProductIds.length === 0) {
       showToast('请至少绑定 1 个商品');
       return;
     }
+    const reasonOrgDisplay = formatOrganizationNames(reasonOrgIds);
     if (drawer.kind === 'reason' && drawer.mode === 'new') {
-      setReasons((list) => [{ code: 'BFYY0004', name: '活动物料补发', description: '门店活动期间物料破损补发', org: '华北事业部', products: boundProductIds.length, status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
+      setReasons((list) => [{ code: 'BFYY0004', name: '活动物料补发', description: '门店活动期间物料破损补发', org: reasonOrgDisplay, orgIds: reasonOrgIds, products: boundProductIds.length, status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
+    }
+    if (drawer.kind === 'reason' && drawer.mode === 'edit') {
+      setReasons((list) => list.map((item) => item.code === drawer.record.code
+        ? { ...item, org: reasonOrgDisplay, orgIds: reasonOrgIds, products: boundProductIds.length, editor: '当前用户', time: '刚刚' }
+        : item));
     }
     if (drawer.kind === 'approval' && drawer.mode === 'new') {
       setApprovals((list) => [{ org: '华北事业部', reason: '物料破损补发', method: approvalMethod, template: approvalMethod === '审批模板' ? '品牌物料补发审批-华北' : '—', validity: '2026-08-09 起', status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
@@ -276,7 +347,7 @@ function PcConfig() {
         {drawer.kind === 'reason' ? <div className="pc-drawer-body">
           <label><span className="pc-field-label">原因名称 <i>*</i></span><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
           <label><span className="pc-field-label">原因说明</span><textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
-          <label><span className="pc-field-label">应用组织 <i>*</i></span><button className="pc-select-wide" type="button">{drawer.record?.org || '华北事业部'}<ChevronDown size={15} /></button></label>
+          <label><span className="pc-field-label">应用组织 <i>*</i></span><button className="pc-select-wide pc-select-active" type="button" aria-label="应用组织" aria-haspopup="dialog" aria-expanded={orgPickerOpen} onClick={openOrganizationPicker}>{formatOrganizationNames(reasonOrgIds)}<Search size={15} /></button></label>
           <div className="pc-binding-title"><span>绑定商品 <i>*</i></span><button type="button" onClick={openProductPicker}><Plus size={15} />添加商品</button></div>
           <table className="pc-mini-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>规格</th><th>操作</th></tr></thead><tbody>{boundProducts.length > 0 ? boundProducts.map((item) => <tr key={item.id}><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td><button type="button" onClick={() => setBoundProductIds((current) => current.filter((id) => id !== item.id))}>移除</button></td></tr>) : <tr><td className="pc-mini-empty" colSpan="4">暂无绑定商品，请点击“添加商品”选择</td></tr>}</tbody></table>
           <label><span className="pc-field-label">状态 <i>*</i></span><span className="pc-radios"><b><input type="radio" name="reason-status" defaultChecked />启用</b><b><input type="radio" name="reason-status" />停用</b></span></label>
@@ -293,6 +364,26 @@ function PcConfig() {
         </div>}
         <footer><button type="button" onClick={closeDrawer}>取消</button><button type="button" className="pc-primary" onClick={saveDrawer}>保存</button></footer>
       </aside></div>}
+      {orgPickerOpen && <div className="pc-product-picker-mask" onClick={closeOrganizationPicker}>
+        <section className="pc-product-picker pc-org-picker" role="dialog" aria-modal="true" aria-labelledby="pc-org-picker-title" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => { if (event.key === 'Escape') closeOrganizationPicker(); }}>
+          <header><div><h2 id="pc-org-picker-title">选择应用组织</h2><p>可多选当前用户有权限的二级组织</p></div><button type="button" aria-label="关闭组织选择" onClick={closeOrganizationPicker}><X size={21} /></button></header>
+          <div className="pc-product-picker-body">
+            <div className="pc-product-scope"><Info size={16} /><span>“全部二级组织”表示保存时已选中当前权限范围内全部二级组织。</span></div>
+            <div className="pc-org-filter">
+              <label><span>组织编码/名称</span><input aria-label="搜索应用组织" value={orgKeyword} onChange={(event) => setOrgKeyword(event.target.value)} placeholder="请输入组织编码或名称" /></label>
+              <button type="button" onClick={() => setOrgKeyword('')}><RotateCcw size={15} />重置</button>
+            </div>
+            <div className="pc-product-table-wrap"><table className="pc-product-table pc-org-table">
+              <thead><tr><th><input type="checkbox" aria-label="全选当前可见二级组织" checked={allFilteredOrganizationsSelected} onChange={toggleAllFilteredOrganizations} /></th><th>组织编码</th><th>组织名称</th><th>组织层级</th></tr></thead>
+              <tbody>{filteredOrganizations.length > 0 ? filteredOrganizations.map((item) => {
+                const selected = draftReasonOrgIds.includes(item.id);
+                return <tr key={item.id} className={selected ? 'selected' : ''} onClick={() => toggleDraftOrganization(item.id)}><td><input type="checkbox" aria-label={`选择${item.name}`} checked={selected} onClick={(event) => event.stopPropagation()} onChange={() => toggleDraftOrganization(item.id)} /></td><td>{item.code}</td><td>{item.name}</td><td>{item.level}</td></tr>;
+              }) : <tr><td colSpan="4"><div className="pc-product-empty"><Search size={28} /><p>未找到符合条件的组织</p><span>请调整组织编码或名称后重试</span></div></td></tr>}</tbody>
+            </table></div>
+          </div>
+          <footer><span>已选 <b>{draftReasonOrgIds.length}</b> 个二级组织{draftReasonOrgIds.length === pcOrganizations.length ? '（全部）' : ''}</span><button type="button" onClick={closeOrganizationPicker}>取消</button><button type="button" className="pc-primary" disabled={draftReasonOrgIds.length === 0} onClick={confirmOrganizationPicker}>确定</button></footer>
+        </section>
+      </div>}
       {productPickerOpen && <div className="pc-product-picker-mask">
         <section className="pc-product-picker" role="dialog" aria-modal="true" aria-labelledby="pc-product-picker-title">
           <header><div><h2 id="pc-product-picker-title">选择商品</h2><p>选择需要绑定到当前补发原因的商品</p></div><button type="button" aria-label="关闭" onClick={() => setProductPickerOpen(false)}><X size={21} /></button></header>
