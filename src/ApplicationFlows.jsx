@@ -395,7 +395,7 @@ function PcStoreOrderDetail({ application, onBack }) {
         <p><span>配送日</span><b>{application.date}</b></p>
         <p><span>业务来源</span><b>品牌物料补发</b></p>
         <p><span>来源申请单</span><b>{application.id}</b></p>
-        <p className="wide"><span>留言备注</span><b>由品牌物料补发申请审批通过后生成</b></p>
+        <p className="wide"><span>留言备注</span><b>【由物料补发生成的门店订单】</b></p>
       </section>
       <div className="paf-order-detail-table">
         <table>
