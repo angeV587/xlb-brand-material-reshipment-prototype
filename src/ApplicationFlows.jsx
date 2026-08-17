@@ -275,7 +275,7 @@ function MobileForm({ initial, onBack, onSave, onSubmit }) {
 function MobileDetail({ item, onBack }) {
   const detailProducts = item.productLines || [];
   return (
-    <main className="af-mobile-shell af-mobile-detail af-order-detail">
+    <main className="af-mobile-shell af-mobile-detail af-order-detail" data-layout-version="door-order-v2">
       <header className="af-mobile-header"><button type="button" onClick={onBack}><ArrowLeft size={22} /></button><h1>品牌物料补发详情</h1><button type="button" aria-label="更多操作" className="af-more-button">•••</button></header>
       <div className="af-detail-scroll">
         <section className="af-detail-search top"><Search size={16} /><input placeholder="商品名称/代码/条码搜索" /><ScanLine size={18} /></section>
