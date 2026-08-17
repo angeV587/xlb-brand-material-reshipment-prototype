@@ -334,18 +334,82 @@ export function MobileApplicationFlow() {
   return <MobileList applications={applications} onCreate={() => { setCurrent(null); setPage('form'); }} onOpen={open} />;
 }
 
-function PcFrame({ children, activeTab, onTab, formTitle }) {
-  return <main className="paf-app"><header className="paf-topbar"><b>新零帮</b><button type="button"><Grid2X2 size={17} />应用</button><div><Search size={17} />搜索菜单、单据、商品</div><span /><em>南京众承 · 管理中心</em><i>王小安</i></header><div className="paf-workspace"><aside><strong>ERP连锁管理</strong><button type="button"><ClipboardList size={18} />看板</button><button type="button" className="active"><Truck size={18} />配送<ChevronRight size={15} /></button><section><span>业务操作</span><b>品牌物料补发</b><button type="button" onClick={() => { window.location.search = '?view=pc'; }}>业务设置 · 补发配置</button><span>配送参数</span><span>门店订单</span></section><button type="button"><Boxes size={18} />采购</button></aside><section className="paf-main"><nav className="paf-tabs"><button type="button">SCM看板</button><button type="button">门店订单</button><button type="button" className={activeTab === 'list' ? 'active' : ''} onClick={() => onTab('list')}>品牌物料补发申请</button>{activeTab === 'form' && <button type="button" className="active">{formTitle}<X size={14} onClick={() => onTab('list')} /></button>}</nav>{children}</section></div></main>;
+function PcFrame({ children, activeTab, onTab, formTitle, orderNo }) {
+  const orderDetail = activeTab === 'order-detail';
+  return (
+    <main className="paf-app">
+      <header className="paf-topbar"><b>新零帮</b><button type="button"><Grid2X2 size={17} />应用</button><div><Search size={17} />搜索菜单、单据、商品</div><span /><em>南京众承 · 管理中心</em><i>王小安</i></header>
+      <div className="paf-workspace">
+        <aside>
+          <strong>ERP连锁管理</strong>
+          <button type="button"><ClipboardList size={18} />看板</button>
+          <button type="button" className="active"><Truck size={18} />配送<ChevronRight size={15} /></button>
+          <section>
+            <span>业务操作</span>
+            {orderDetail ? <span>品牌物料补发</span> : <b>品牌物料补发</b>}
+            <button type="button" onClick={() => { window.location.search = '?view=pc'; }}>业务设置 · 补发配置</button>
+            <span>配送参数</span>
+            {orderDetail ? <b>门店订单</b> : <span>门店订单</span>}
+          </section>
+          <button type="button"><Boxes size={18} />采购</button>
+        </aside>
+        <section className="paf-main">
+          <nav className="paf-tabs">
+            <button type="button">SCM看板</button>
+            <button type="button">门店订单</button>
+            <button type="button" className={activeTab === 'list' ? 'active' : ''} onClick={() => onTab('list')}>品牌物料补发申请</button>
+            {activeTab === 'form' && <button type="button" className="active">{formTitle}<X size={14} onClick={() => onTab('list')} /></button>}
+            {orderDetail && <button type="button" className="active">门店订单 {orderNo}<X size={14} onClick={() => onTab('list')} /></button>}
+          </nav>
+          {children}
+        </section>
+      </div>
+    </main>
+  );
 }
-
-function PcApplicationList({ applications, setApplications, onCreate, onEdit, onView }) {
+function PcApplicationList({ applications, setApplications, onCreate, onEdit, onView, onOpenOrder }) {
   const [keyword, setKeyword] = useState('');
   const [status, setStatus] = useState('全部状态');
   const [reason, setReason] = useState('全部原因');
   const [selected, setSelected] = useState([]);
   const filtered = applications.filter((item) => (!keyword || `${item.id} ${item.store}`.includes(keyword)) && (status === '全部状态' || item.status === status) && (reason === '全部原因' || item.reason === reason));
   const selectedItem = applications.find((item) => selected.includes(item.id));
-  return <div className="paf-content"><header className="paf-title"><div><p>配送 / 业务操作</p><h1>品牌物料补发申请</h1></div><span><Workflow size={17} />所有申请统一提交泛微审批</span></header><section className="paf-filters"><label><span>申请单号</span><input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="请输入申请单号" /></label><label><span>申请门店</span><button type="button">请选择门店<Search size={15} /></button></label><label><span>补发原因</span><select value={reason} onChange={(e) => setReason(e.target.value)}><option>全部原因</option><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label><label><span>申请状态</span><select value={status} onChange={(e) => setStatus(e.target.value)}><option>全部状态</option><option>制单</option><option>审批中</option><option>已通过</option><option>已驳回</option><option>作废</option></select></label><label><span>申请日期</span><div className="paf-range"><input type="date" /><i>至</i><input type="date" /></div></label><footer><button type="button" className="primary"><Search size={15} />查询</button><button type="button" onClick={() => { setKeyword(''); setStatus('全部状态'); setReason('全部原因'); }}><RotateCcw size={15} />重置</button></footer></section><section className="paf-toolbar"><button type="button" className="primary" onClick={onCreate}><Plus size={16} />新增</button><button type="button" disabled={!selectedItem || !['制单', '已驳回'].includes(selectedItem.status)} onClick={() => onEdit(selectedItem)}><Edit3 size={15} />修改</button><button type="button" disabled={!selectedItem} onClick={() => onView(selectedItem)}><Eye size={15} />查看</button><span>共 {filtered.length} 条</span></section><div className="paf-table-wrap"><table><thead><tr><th><input type="checkbox" checked={filtered.length > 0 && filtered.every((item) => selected.includes(item.id))} onChange={(e) => setSelected(e.target.checked ? filtered.map((item) => item.id) : [])} /></th><th>申请单号</th><th>申请门店</th><th>所属组织</th><th>补发原因</th><th>预计配送日</th><th>商品/数量</th><th>申请状态</th><th>关联门店订单</th><th>申请人 / 申请时间</th><th>操作</th></tr></thead><tbody>{filtered.map((item) => <tr className={selected.includes(item.id) ? 'selected' : ''} key={item.id}><td><input type="checkbox" checked={selected.includes(item.id)} onChange={() => setSelected((list) => list.includes(item.id) ? list.filter((id) => id !== item.id) : [...list, item.id])} /></td><td><button type="button" className="link" onClick={() => onView(item)}>{item.id}</button></td><td>{item.store}</td><td>{item.org}</td><td>{item.reason}</td><td>{item.date}</td><td>{item.items} 项 / {item.qty} 件</td><td><StatusBadge status={item.status} /></td><td>{item.orderNo === '—' ? '—' : <button type="button" className="link">{item.orderNo}</button>}</td><td>{item.applicant}<small>{item.created}</small></td><td>{['制单', '已驳回'].includes(item.status) ? <button type="button" className="link" onClick={() => onEdit(item)}>编辑</button> : <button type="button" className="link" onClick={() => onView(item)}>查看</button>}</td></tr>)}</tbody></table></div><div className="paf-pagination"><span>共 {filtered.length} 条</span><button type="button">1</button><span>200 条/页</span></div></div>;
+  return <div className="paf-content"><header className="paf-title"><div><p>配送 / 业务操作</p><h1>品牌物料补发申请</h1></div><span><Workflow size={17} />所有申请统一提交泛微审批</span></header><section className="paf-filters"><label><span>申请单号</span><input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="请输入申请单号" /></label><label><span>申请门店</span><button type="button">请选择门店<Search size={15} /></button></label><label><span>补发原因</span><select value={reason} onChange={(e) => setReason(e.target.value)}><option>全部原因</option><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label><label><span>申请状态</span><select value={status} onChange={(e) => setStatus(e.target.value)}><option>全部状态</option><option>制单</option><option>审批中</option><option>已通过</option><option>已驳回</option><option>作废</option></select></label><label><span>申请日期</span><div className="paf-range"><input type="date" /><i>至</i><input type="date" /></div></label><footer><button type="button" className="primary"><Search size={15} />查询</button><button type="button" onClick={() => { setKeyword(''); setStatus('全部状态'); setReason('全部原因'); }}><RotateCcw size={15} />重置</button></footer></section><section className="paf-toolbar"><button type="button" className="primary" onClick={onCreate}><Plus size={16} />新增</button><button type="button" disabled={!selectedItem || !['制单', '已驳回'].includes(selectedItem.status)} onClick={() => onEdit(selectedItem)}><Edit3 size={15} />修改</button><button type="button" disabled={!selectedItem} onClick={() => onView(selectedItem)}><Eye size={15} />查看</button><span>共 {filtered.length} 条</span></section><div className="paf-table-wrap"><table><thead><tr><th><input type="checkbox" checked={filtered.length > 0 && filtered.every((item) => selected.includes(item.id))} onChange={(e) => setSelected(e.target.checked ? filtered.map((item) => item.id) : [])} /></th><th>申请单号</th><th>申请门店</th><th>所属组织</th><th>补发原因</th><th>预计配送日</th><th>商品/数量</th><th>申请状态</th><th>关联门店订单</th><th>申请人 / 申请时间</th><th>操作</th></tr></thead><tbody>{filtered.map((item) => <tr className={selected.includes(item.id) ? 'selected' : ''} key={item.id}><td><input type="checkbox" checked={selected.includes(item.id)} onChange={() => setSelected((list) => list.includes(item.id) ? list.filter((id) => id !== item.id) : [...list, item.id])} /></td><td><button type="button" className="link" onClick={() => onView(item)}>{item.id}</button></td><td>{item.store}</td><td>{item.org}</td><td>{item.reason}</td><td>{item.date}</td><td>{item.items} 项 / {item.qty} 件</td><td><StatusBadge status={item.status} /></td><td>{item.orderNo === '—' ? '—' : <button type="button" className="link" onClick={() => onOpenOrder(item)}>{item.orderNo}</button>}</td><td>{item.applicant}<small>{item.created}</small></td><td>{['制单', '已驳回'].includes(item.status) ? <button type="button" className="link" onClick={() => onEdit(item)}>编辑</button> : <button type="button" className="link" onClick={() => onView(item)}>查看</button>}</td></tr>)}</tbody></table></div><div className="paf-pagination"><span>共 {filtered.length} 条</span><button type="button">1</button><span>200 条/页</span></div></div>;
+}
+
+function PcStoreOrderDetail({ application, onBack }) {
+  const productLines = application.productLines?.length ? application.productLines : makeProductLines([['card', application.qty || 1]]);
+  const totalQty = productLines.reduce((sum, item) => sum + item.qty, 0);
+  return (
+    <div className="paf-content paf-store-order-detail">
+      <section className="paf-order-toolbar">
+        <button type="button" disabled>保存</button>
+        <button type="button" disabled>审核</button>
+        <button type="button">业务操作⌄</button>
+        <button type="button" onClick={onBack}><ArrowLeft size={15} />返回</button>
+      </section>
+      <nav className="paf-order-info-tabs"><button type="button" className="active">基本信息</button><button type="button">其他信息</button></nav>
+      <section className="paf-order-balance"><span>门店余额：<b>5,836.91</b></span><span>授信额度：<b>100,000.00</b></span><span>可用余额：<b>105,836.91</b></span><i>审核</i></section>
+      <section className="paf-order-head-grid">
+        <p><span>补货门店</span><b>{application.store}</b></p>
+        <p><span>补货组织</span><b>{application.org}</b></p>
+        <p><span>单据号</span><b>{application.orderNo}</b></p>
+        <p><span>订单类型</span><b>仓配</b></p>
+        <p><span>配送日</span><b>{application.date}</b></p>
+        <p><span>业务来源</span><b>品牌物料补发</b></p>
+        <p><span>来源申请单</span><b>{application.id}</b></p>
+        <p className="wide"><span>留言备注</span><b>由品牌物料补发申请审批通过后生成</b></p>
+      </section>
+      <div className="paf-order-detail-table">
+        <table>
+          <thead><tr><th>序号</th><th>商品代码</th><th>商品条码</th><th>商品名称</th><th>采购规格</th><th>商品类别</th><th>单位</th><th>要货数量</th><th>单价</th><th>金额</th></tr></thead>
+          <tbody>{productLines.map((item, index) => <tr key={item.id}><td>{index + 1}</td><td><button type="button">{item.code}</button></td><td>{`695000000${index + 1}`}</td><td>{item.name}</td><td>{item.spec}</td><td>品牌物料</td><td>件</td><td>{item.qty.toFixed(3)}</td><td>0.00</td><td>0.00</td></tr>)}</tbody>
+          <tfoot><tr><td colSpan="7">合计</td><td>{totalQty.toFixed(3)}</td><td>—</td><td>0.00</td></tr></tfoot>
+        </table>
+      </div>
+      <footer className="paf-order-detail-footer"><span>关键词：<input /></span><button type="button">上一条</button><button type="button">下一条</button><i>共 {productLines.length} 条　1　200 条/页</i></footer>
+    </div>
+  );
 }
 
 function PcApplicationForm({ initial, readonly = false, onBack, onSave, onSubmit }) {
@@ -368,7 +432,16 @@ export function PcApplicationModule() {
   const [current, setCurrent] = useState(null);
   const [applications, setApplications] = useState(SEED_APPLICATIONS);
   const openForm = (item = null, nextMode = 'edit') => { setCurrent(item); setMode(nextMode); setTab('form'); };
+  const openOrder = (item) => { setCurrent(item); setTab('order-detail'); };
   const save = (draft, status) => { const id = draft?.id || `BF20260817${String(applications.length + 2).padStart(4, '0')}`; const row = { ...draft, id, status, applicant: '王小安', created: draft?.created || '2026-08-17 10:20', auditor: draft?.auditor || '—', auditedAt: draft?.auditedAt || '—', voidedAt: draft?.voidedAt || '—', orderNo: draft?.orderNo || '—', rejectReason: draft?.rejectReason || '', productNames: draft?.productNames || '会员权益卡（新版）', productCodes: draft?.productCodes || 'SP-202608-001' }; setApplications((list) => [row, ...list.filter((item) => item.id !== id)]); setTab('list'); };
   const formTitle = mode === 'view' ? '查看补发申请' : current ? '编辑补发申请' : '新增补发申请';
-  return <PcFrame activeTab={tab} onTab={setTab} formTitle={formTitle}>{tab === 'list' ? <PcApplicationList applications={applications} setApplications={setApplications} onCreate={() => openForm()} onEdit={(item) => openForm(item)} onView={(item) => openForm(item, 'view')} /> : <PcApplicationForm initial={current} readonly={mode === 'view'} onBack={() => setTab('list')} onSave={(draft) => save(draft, '制单')} onSubmit={(draft) => save(draft, '审批中')} />}</PcFrame>;
+  let content;
+  if (tab === 'list') {
+    content = <PcApplicationList applications={applications} setApplications={setApplications} onCreate={() => openForm()} onEdit={(item) => openForm(item)} onView={(item) => openForm(item, 'view')} onOpenOrder={openOrder} />;
+  } else if (tab === 'order-detail') {
+    content = <PcStoreOrderDetail application={current} onBack={() => setTab('list')} />;
+  } else {
+    content = <PcApplicationForm initial={current} readonly={mode === 'view'} onBack={() => setTab('list')} onSave={(draft) => save(draft, '制单')} onSubmit={(draft) => save(draft, '审批中')} />;
+  }
+  return <PcFrame activeTab={tab} onTab={setTab} formTitle={formTitle} orderNo={current?.orderNo}>{content}</PcFrame>;
 }
