@@ -422,7 +422,7 @@ function MobileApp() {
         <section className="timeline-card">
           <h3>申请进度</h3>
           <div className="timeline-item active"><span /><div><b>待审批</b><p>已按华东事业部 · 物料破损补发，发起审批流程</p></div></div>
-          <div className="timeline-item"><span /><div><b>生成仓配订单</b><p>审批通过后将按最新配送日与订购属性校验，生成 0 元审核态仓配门店订单</p></div></div>
+          <div className="timeline-item"><span /><div><b>生成仓配订单</b><p>审批通过后先保存 0 元制单态仓配门店订单，再执行审核并回写订单号和实际状态</p></div></div>
           <div className="timeline-item"><span /><div><b>仓库履约</b><p>仓库收单、出库及配送状态将自动回写</p></div></div>
         </section>
         <div className="bottom-actions"><button className="secondary-action" type="button" onClick={() => setSubmitted(false)}>继续申请</button><button className="primary-action" type="button">查看申请详情</button></div>
