@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Boxes,
-  CalendarDays,
   ChevronDown,
   ChevronRight,
   CircleCheck,
@@ -440,12 +439,11 @@ function MobileApp() {
           <div className="field-row"><label>申请门店 <i>*</i></label><div className="field-value"><span>华东事业部 · 星河路店</span><ChevronDown size={17} /></div></div>
           <div className="field-row select-row"><label>补发原因 <i>*</i></label><button type="button" className="field-value reason-select" onClick={() => setReasonOpen(!reasonOpen)}><span>{reason}</span><ChevronDown size={17} /></button></div>
           {reasonOpen && <div className="choice-menu">{Object.keys(reasonProducts).map((option) => <button key={option} type="button" className={option === reason ? 'selected' : ''} onClick={() => changeReason(option)}>{option}<span>{option === reason && <CircleCheck size={16} />}</span></button>)}</div>}
-          <div className="field-row"><label>期望送达日期</label><div className="field-value"><CalendarDays size={17} /><span>2026-08-10（周一）</span><ChevronDown size={17} /></div></div>
         </section>
 
         <section className="form-section materials-section">
           <div className="section-title"><h2>补发物料 <em>*</em></h2><span>{items.length} 项 / {totalQty} 件</span></div>
-          <div className="rule-tip"><Info size={16} /><p>仅可选择当前补发原因允许的物料；提交及出单时均会校验停止要货、配送日和订购属性。</p></div>
+          <div className="rule-tip"><Info size={16} /><p>仅可选择当前补发原因允许的物料；提交时校验停止要货和订购属性，配送日由审核通过后生成的门店订单按现有规则计算。</p></div>
           {items.length === 0 && <div className="empty-state"><PackagePlus size={25} /><p>尚未选择补发物料</p></div>}
           {items.map((item) => (
             <article className="material-card" key={item.id}>
@@ -457,7 +455,7 @@ function MobileApp() {
           ))}
           <button type="button" className="add-material" onClick={openPicker}><Plus size={18} />添加补发物料</button>
         </section>
-        <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“品牌物料补发”的 0 元仓配门店订单。若审批期间配送日或订购属性发生变化，将提示处理，不会静默减少数量。</p></section>
+        <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“品牌物料补发”的 0 元仓配门店订单，并按该门店订单生成时计算的配送日配送。</p></section>
       </div>
       {notice && <div className="toast" role="status">{notice}</div>}
       <footer className="bottom-bar"><button type="button" className="draft-button">保存草稿</button><button type="button" className="submit-button" onClick={submit}>审核</button></footer>
