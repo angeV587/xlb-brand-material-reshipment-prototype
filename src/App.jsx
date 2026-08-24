@@ -420,7 +420,7 @@ function MobileApp() {
         </section>
         <section className="timeline-card">
           <h3>申请进度</h3>
-          <div className="timeline-item active"><span /><div><b>审核</b><p>单据状态：审核；OA审批状态：审批中</p></div></div>
+          <div className="timeline-item active"><span /><div><b>审核</b><p>单据状态：审核；审批状态：审批中</p></div></div>
           <div className="timeline-item"><span /><div><b>生成仓配订单</b><p>审批通过后先保存 0 元制单态仓配门店订单，再执行审核并回写订单号和实际状态</p></div></div>
           <div className="timeline-item"><span /><div><b>仓库履约</b><p>仓库收单、出库及配送状态将自动回写</p></div></div>
         </section>

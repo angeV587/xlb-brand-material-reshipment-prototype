@@ -23,13 +23,11 @@ import {
   RotateCcw,
   Search,
   ScanLine,
-  Send,
   ShoppingCart,
   Trash2,
   Truck,
   Upload,
   UserRound,
-  Workflow,
   X,
 } from 'lucide-react';
 import './application-flows.css';
@@ -181,7 +179,7 @@ function MobileList({ applications, onCreate, onOpen }) {
             </div>
             <div className="af-card-body">
               <p><span>补发内容</span><b>{item.reason} · {item.items} 项 / {item.qty} 件</b></p>
-              <p><span>OA审批状态</span><b>{item.approvalStatus === '—' ? '—' : <StatusBadge status={item.approvalStatus} />}</b></p>
+              <p><span>审批状态</span><b>{item.approvalStatus === '—' ? '—' : <StatusBadge status={item.approvalStatus} />}</b></p>
               <p><span>制单人</span><b>{item.applicant}　{item.created}</b></p>
               <p><span>审核人</span><b>{item.auditor === '—' ? '—' : <>{item.auditor}　{item.auditedAt}</>}</b></p>
               <p><span>关联门店订单</span><b className={item.orderNo === '—' ? '' : 'link'}>{item.orderNo === '—' ? '—' : item.orderNo + ' · ' + (item.orderStatus || '已审核')}</b></p>
@@ -202,7 +200,7 @@ function MobileList({ applications, onCreate, onOpen }) {
             <section><h3>时间类型</h3><div className="af-filter-options columns-3">{MOBILE_TIME_TYPES.map((item) => <button type="button" key={item} className={draftFilter.timeType === item ? 'active' : ''} onClick={() => updateDraft({ timeType: item })}>{item}</button>)}</div></section>
             <section><h3>日期范围</h3><div className="af-filter-options columns-4">{MOBILE_DATE_RANGES.map((item) => <button type="button" key={item} className={draftFilter.dateRange === item ? 'active' : ''} onClick={() => updateDraft({ dateRange: item })}>{item}</button>)}</div></section>
             {draftFilter.dateRange === '自定义' && <section className="af-custom-range"><input aria-label="开始日期" type="date" value={draftFilter.customStart} onChange={(event) => updateDraft({ customStart: event.target.value })} /><span>至</span><input aria-label="结束日期" type="date" value={draftFilter.customEnd} onChange={(event) => updateDraft({ customEnd: event.target.value })} /></section>}
-            <section><h3>OA审批状态</h3><div className="af-filter-options columns-3">{MOBILE_APPROVAL_STATUSES.map((item) => <button type="button" key={item} className={draftFilter.approvalStatus === item ? 'active' : ''} onClick={() => toggleApproval(item)}>{item}</button>)}</div></section>
+            <section><h3>审批状态</h3><div className="af-filter-options columns-3">{MOBILE_APPROVAL_STATUSES.map((item) => <button type="button" key={item} className={draftFilter.approvalStatus === item ? 'active' : ''} onClick={() => toggleApproval(item)}>{item}</button>)}</div></section>
           </div>
           <footer><button type="button" onClick={resetFilter}>重置</button><button type="button" className="primary" onClick={applyFilter}>确定</button></footer>
         </section>
@@ -243,7 +241,7 @@ function MobileForm({ initial, onBack, onSave, onSubmit }) {
           <div className="af-form-document-fields">
             <label><span>申请门店 <i>*</i></span><button type="button">华东事业部 · 星河路店<ChevronRight size={16} /></button></label>
             <label><span>所属二级组织</span><b>华东事业部</b></label>
-            {initial && <label><span>OA审批状态</span><b>{initial.approvalStatus || '—'}</b></label>}
+            {initial && <label><span>审批状态</span><b>{initial.approvalStatus || '—'}</b></label>}
             <label><span>补发原因 <i>*</i></span><select value={reason} onChange={(event) => setReason(event.target.value)}><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label>
             <label><span>制单人</span><b>{initial?.applicant || '王小安'}</b></label>
             <label><span>制单时间</span><b>{initial?.created || '保存后生成'}</b></label>
@@ -296,7 +294,7 @@ function MobileDetail({ item, onBack, onVoid }) {
           <div className="af-detail-fields">
             <p><span>申请门店</span><b>{item.org} · {item.store}</b></p>
             <p><span>补发原因</span><b>{item.reason}</b></p>
-            <p><span>OA审批状态</span><b>{item.approvalStatus}</b></p>
+            <p><span>审批状态</span><b>{item.approvalStatus}</b></p>
             <p><span>制单人</span><b>{item.applicant}　{item.created}</b></p>
             {item.auditor !== '—' && <p><span>审核人</span><b>{item.auditor}　{item.auditedAt}</b></p>}
             {item.status === '作废' && <p><span>作废时间</span><b>{item.voidedAt}</b></p>}
@@ -320,7 +318,7 @@ function MobileDetail({ item, onBack, onVoid }) {
       </div>
       {canVoid && <footer className="af-detail-actions"><button type="button" onClick={() => setVoidConfirmOpen(true)}>作废</button></footer>}
       {voidMessage && <div className="af-mobile-toast">{voidMessage}</div>}
-      {voidConfirmOpen && <div className="af-mobile-mask af-void-mask"><section className="af-void-dialog"><h2>确认作废</h2><p>系统将再次校验OA审批流程是否结束及是否已生成门店订单。确认发起作废？</p><footer><button type="button" onClick={() => setVoidConfirmOpen(false)}>取消</button><button type="button" onClick={confirmVoid}>确认作废</button></footer></section></div>}
+      {voidConfirmOpen && <div className="af-mobile-mask af-void-mask"><section className="af-void-dialog"><h2>确认作废</h2><p>系统将再次校验审批流程是否结束及是否已生成门店订单。确认发起作废？</p><footer><button type="button" onClick={() => setVoidConfirmOpen(false)}>取消</button><button type="button" onClick={confirmVoid}>确认作废</button></footer></section></div>}
     </main>
   );
 }
@@ -346,7 +344,7 @@ export function MobileApplicationFlow() {
     setPage('detail');
   };
   const voidApplication = (item) => {
-    if (item.approvalStatus !== '审批中') return { ok: false, message: 'OA审批流程已结束，不允许作废' };
+    if (item.approvalStatus !== '审批中') return { ok: false, message: '审批流程已结束，不允许作废' };
     if (item.orderNo !== '—') return { ok: false, message: '已生成关联门店订单，不允许作废' };
     const result = { ...item, status: '作废', approvalStatus: '—', voidedAt: '2026-08-24 11:30', voidReason: '审批中申请主动作废' };
     setApplications((list) => list.map((row) => row.id === item.id ? result : row));
@@ -405,20 +403,20 @@ function PcApplicationList({ applications, onCreate, onView, onOpenOrder, onRetr
   };
   return (
     <div className="paf-content">
-      <header className="paf-title"><div><p>配送 / 业务操作</p><h1>品牌物料补发申请</h1></div><span><Workflow size={17} />所有申请统一提交泛微审批</span></header>
+      <header className="paf-title"><div><p>配送 / 业务操作</p><h1>品牌物料补发申请</h1></div></header>
       <section className="paf-filters">
         <label><span>申请单号</span><input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="请输入申请单号" /></label>
         <label><span>申请门店</span><button type="button">请选择门店<Search size={15} /></button></label>
         <label><span>补发原因</span><select value={reason} onChange={(e) => setReason(e.target.value)}><option>全部原因</option><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label>
         <label><span>单据状态</span><select value={status} onChange={(e) => setStatus(e.target.value)}><option>全部状态</option><option>制单</option><option>审核</option><option>作废</option></select></label>
-        <label><span>OA审批状态</span><select value={approvalStatus} onChange={(e) => setApprovalStatus(e.target.value)}><option>全部状态</option><option>审批中</option><option>已通过</option><option>已驳回</option></select></label>
+        <label><span>审批状态</span><select value={approvalStatus} onChange={(e) => setApprovalStatus(e.target.value)}><option>全部状态</option><option>审批中</option><option>已通过</option><option>已驳回</option></select></label>
         <label><span>申请日期</span><div className="paf-range"><input type="date" /><i>至</i><input type="date" /></div></label>
         <footer><button type="button" className="primary"><Search size={15} />查询</button><button type="button" onClick={() => { setKeyword(''); setStatus('全部状态'); setApprovalStatus('全部状态'); setReason('全部原因'); }}><RotateCcw size={15} />重置</button></footer>
       </section>
       <section className="paf-toolbar"><button type="button" className="primary" onClick={onCreate}><Plus size={16} />新增</button><span>共 {filtered.length} 条</span></section>
       <div className="paf-table-wrap">
         <table>
-          <thead><tr><th>申请单号</th><th>申请门店</th><th>所属组织</th><th>补发原因</th><th>商品/数量</th><th>单据状态</th><th>OA审批状态</th><th>关联门店订单</th><th>门店订单状态</th><th>申请人 / 申请时间</th><th>操作</th></tr></thead>
+          <thead><tr><th>申请单号</th><th>申请门店</th><th>所属组织</th><th>补发原因</th><th>商品/数量</th><th>单据状态</th><th>审批状态</th><th>关联门店订单</th><th>门店订单状态</th><th>申请人 / 申请时间</th><th>操作</th></tr></thead>
           <tbody>{filtered.map((item) => {
             const hasOrder = Boolean(item.orderNo && item.orderNo !== '—');
             const canRetry = item.status === '审核' && item.approvalStatus === '已通过' && !hasOrder;
@@ -479,7 +477,7 @@ function PcApplicationForm({ initial, readonly = false, onBack, onSave, onSubmit
   const total = items.reduce((sum, item) => sum + item.qty, 0);
   const canVoid = initial?.status === '审核' && initial?.approvalStatus === '审批中' && initial?.orderNo === '—';
   const submit = () => { if (items.some((item) => !item.proof)) return setMessage('存在未上传图片凭证的商品，请补充后再提交。'); if (items.some((item) => item.qty % item.multiple !== 0)) return setMessage('商品数量不符合订购倍数，请调整后再提交。'); onSubmit({ ...initial, store, org: '华东事业部', reason, note, items: items.length, qty: total }); };
-  return <div className="paf-content paf-form-page" editing={String(Boolean(initial))}><header className="paf-title"><div><p>配送 / 品牌物料补发申请 / {title}</p><h1>{title}</h1></div><button type="button" onClick={onBack}><ArrowLeft size={15} />返回列表</button></header>{initial?.approvalStatus === '已驳回' && <div className="paf-reject-banner"><AlertTriangle size={17} /><b>泛微审批驳回：</b>{initial.rejectReason}</div>}<section className="paf-form-card"><h2>申请信息</h2><div className="paf-form-grid"><label><span>申请门店 <i>*</i></span><select disabled={readonly} value={store} onChange={(e) => setStore(e.target.value)}><option>星河路店</option><option>南京中山路店</option><option>苏州园区店</option></select></label><label><span>所属二级组织</span><input disabled value="华东事业部" /></label>{initial && <label><span>OA审批状态</span><input disabled value={initial.approvalStatus || '—'} /></label>}<label><span>补发原因 <i>*</i></span><select disabled={readonly} value={reason} onChange={(e) => setReason(e.target.value)}><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label><label className="wide"><span>申请说明</span><textarea disabled={readonly} value={note} onChange={(e) => setNote(e.target.value)} placeholder="请说明物料损坏、缺失或换新情况" /></label></div></section><section className="paf-form-card"><div className="paf-card-title"><div><h2>补发商品明细 <i>*</i></h2><p>商品范围取“补发配置”与当前门店可订商品范围的交集</p></div>{!readonly && <button type="button" className="primary" onClick={() => setPickerOpen(true)}><Plus size={15} />添加商品</button>}</div><div className="paf-rules"><Info size={16} /><span>泛微审批通过后先保存门店订单，再执行审核；门店订单按生成时计算的配送日配送。</span></div><div className="paf-form-table"><table><thead><tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>规格</th><th>订购属性</th><th>申请数量</th><th>图片凭证</th>{!readonly && <th>操作</th>}</tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><img src={item.image} alt="" /></td><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td>倍数 {item.multiple} / {item.min}–{item.max} 件</td><td>{readonly ? item.qty : <Quantity value={item.qty} min={item.min} max={item.max} onChange={(qty) => setItems((list) => list.map((p) => p.id === item.id ? { ...p, qty } : p))} />}</td><td>{item.proof ? <button type="button" className="paf-proof" disabled={readonly} onClick={() => setItems((list) => list.map((p) => p.id === item.id ? { ...p, proof: false } : p))}><FileImage size={15} />查看凭证<CheckCircle2 size={15} /></button> : <button type="button" className="paf-upload" disabled={readonly} onClick={() => setItems((list) => list.map((p) => p.id === item.id ? { ...p, proof: true } : p))}><Upload size={15} />上传图片</button>}</td>{!readonly && <td><button type="button" className="link danger" onClick={() => setItems((list) => list.filter((p) => p.id !== item.id))}>移除</button></td>}</tr>)}</tbody></table></div><footer className="paf-form-summary"><span>共 {items.length} 项，申请 {total} 件</span></footer></section>{message && <div className="paf-form-error"><AlertTriangle size={16} />{message}</div>}<footer className="paf-page-actions"><button type="button" onClick={onBack}>取消</button>{canVoid && <button type="button" className="danger" onClick={() => setVoidConfirmOpen(true)}>作废</button>}{!readonly && <><button type="button" onClick={() => onSave({ ...initial, store, org: '华东事业部', reason, note, items: items.length, qty: total })}>保存草稿</button><button type="button" className="primary" onClick={submit}><Send size={15} />提交泛微审批</button></>}</footer>{pickerOpen && <div className="paf-modal-mask"><section className="paf-product-modal"><header><div><h2>选择商品</h2><p>展示当前用户权限可见商品，保存时进入补发配置与门店订购规则校验</p></div><button type="button" onClick={() => setPickerOpen(false)}><X size={20} /></button></header><div className="paf-modal-search"><label>商品编码/名称<input placeholder="请输入商品编码、名称或条码" /></label><label>商品分类<select><option>全部分类</option><option>品牌物料</option></select></label><button type="button" className="primary"><Search size={15} />查询</button></div><div className="paf-picker-table"><table><thead><tr><th>选择</th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>规格</th><th>订购属性</th></tr></thead><tbody>{PRODUCTS.map((item) => { const selected = items.some((p) => p.id === item.id); return <tr key={item.id} className={selected ? 'selected' : ''} onClick={() => setItems((list) => selected ? list.filter((p) => p.id !== item.id) : [...list, { ...item, qty: item.min, proof: false }])}><td><input type="checkbox" readOnly checked={selected} /></td><td><img src={item.image} alt="" /></td><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td>倍数 {item.multiple} / {item.min}–{item.max}</td></tr>; })}</tbody></table></div><footer><span>已选 {items.length} 项</span><button type="button" onClick={() => setPickerOpen(false)}>取消</button><button type="button" className="primary" onClick={() => setPickerOpen(false)}>确认</button></footer></section></div>}{voidConfirmOpen && <div className="paf-modal-mask"><section className="paf-void-modal"><h2>确认作废</h2><p>系统将再次校验OA审批流程是否结束及是否已生成门店订单。确认发起作废？</p><footer><button type="button" onClick={() => setVoidConfirmOpen(false)}>取消</button><button type="button" onClick={() => { onVoid(initial); setVoidConfirmOpen(false); }}>确认作废</button></footer></section></div>}</div>;
+  return <div className="paf-content paf-form-page" editing={String(Boolean(initial))}><header className="paf-title"><div><p>配送 / 品牌物料补发申请 / {title}</p><h1>{title}</h1></div><button type="button" onClick={onBack}><ArrowLeft size={15} />返回列表</button></header>{initial?.approvalStatus === '已驳回' && <div className="paf-reject-banner"><AlertTriangle size={17} /><b>审核驳回：</b>{initial.rejectReason}</div>}<section className="paf-form-card"><h2>申请信息</h2><div className="paf-form-grid"><label><span>申请门店 <i>*</i></span><select disabled={readonly} value={store} onChange={(e) => setStore(e.target.value)}><option>星河路店</option><option>南京中山路店</option><option>苏州园区店</option></select></label><label><span>所属二级组织</span><input disabled value="华东事业部" /></label>{initial && <label><span>审批状态</span><input disabled value={initial.approvalStatus || '—'} /></label>}<label><span>补发原因 <i>*</i></span><select disabled={readonly} value={reason} onChange={(e) => setReason(e.target.value)}><option>物料破损补发</option><option>新店开业补发</option><option>版本换新补发</option></select></label><label className="wide"><span>申请说明</span><textarea disabled={readonly} value={note} onChange={(e) => setNote(e.target.value)} placeholder="请说明物料损坏、缺失或换新情况" /></label></div></section><section className="paf-form-card"><div className="paf-card-title"><div><h2>补发商品明细 <i>*</i></h2><p>商品范围取“补发配置”与当前门店可订商品范围的交集</p></div>{!readonly && <button type="button" className="primary" onClick={() => setPickerOpen(true)}><Plus size={15} />添加商品</button>}</div><div className="paf-rules"><Info size={16} /><span>审批通过后先保存门店订单，再执行审核；门店订单按生成时计算的配送日配送。</span></div><div className="paf-form-table"><table><thead><tr><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>规格</th><th>订购属性</th><th>申请数量</th><th>图片凭证</th>{!readonly && <th>操作</th>}</tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><img src={item.image} alt="" /></td><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td>倍数 {item.multiple} / {item.min}–{item.max} 件</td><td>{readonly ? item.qty : <Quantity value={item.qty} min={item.min} max={item.max} onChange={(qty) => setItems((list) => list.map((p) => p.id === item.id ? { ...p, qty } : p))} />}</td><td>{item.proof ? <button type="button" className="paf-proof" disabled={readonly} onClick={() => setItems((list) => list.map((p) => p.id === item.id ? { ...p, proof: false } : p))}><FileImage size={15} />查看凭证<CheckCircle2 size={15} /></button> : <button type="button" className="paf-upload" disabled={readonly} onClick={() => setItems((list) => list.map((p) => p.id === item.id ? { ...p, proof: true } : p))}><Upload size={15} />上传图片</button>}</td>{!readonly && <td><button type="button" className="link danger" onClick={() => setItems((list) => list.filter((p) => p.id !== item.id))}>移除</button></td>}</tr>)}</tbody></table></div><footer className="paf-form-summary"><span>共 {items.length} 项，申请 {total} 件</span></footer></section>{message && <div className="paf-form-error"><AlertTriangle size={16} />{message}</div>}<footer className="paf-page-actions"><button type="button" onClick={onBack}>取消</button>{canVoid && <button type="button" className="danger" onClick={() => setVoidConfirmOpen(true)}>作废</button>}{!readonly && <><button type="button" onClick={() => onSave({ ...initial, store, org: '华东事业部', reason, note, items: items.length, qty: total })}>保存草稿</button><button type="button" className="primary" onClick={submit}>审核</button></>}</footer>{pickerOpen && <div className="paf-modal-mask"><section className="paf-product-modal"><header><div><h2>选择商品</h2><p>展示当前用户权限可见商品，保存时进入补发配置与门店订购规则校验</p></div><button type="button" onClick={() => setPickerOpen(false)}><X size={20} /></button></header><div className="paf-modal-search"><label>商品编码/名称<input placeholder="请输入商品编码、名称或条码" /></label><label>商品分类<select><option>全部分类</option><option>品牌物料</option></select></label><button type="button" className="primary"><Search size={15} />查询</button></div><div className="paf-picker-table"><table><thead><tr><th>选择</th><th>商品图片</th><th>商品编码</th><th>商品名称</th><th>规格</th><th>订购属性</th></tr></thead><tbody>{PRODUCTS.map((item) => { const selected = items.some((p) => p.id === item.id); return <tr key={item.id} className={selected ? 'selected' : ''} onClick={() => setItems((list) => selected ? list.filter((p) => p.id !== item.id) : [...list, { ...item, qty: item.min, proof: false }])}><td><input type="checkbox" readOnly checked={selected} /></td><td><img src={item.image} alt="" /></td><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td>倍数 {item.multiple} / {item.min}–{item.max}</td></tr>; })}</tbody></table></div><footer><span>已选 {items.length} 项</span><button type="button" onClick={() => setPickerOpen(false)}>取消</button><button type="button" className="primary" onClick={() => setPickerOpen(false)}>确认</button></footer></section></div>}{voidConfirmOpen && <div className="paf-modal-mask"><section className="paf-void-modal"><h2>确认作废</h2><p>系统将再次校验审批流程是否结束及是否已生成门店订单。确认发起作废？</p><footer><button type="button" onClick={() => setVoidConfirmOpen(false)}>取消</button><button type="button" onClick={() => { onVoid(initial); setVoidConfirmOpen(false); }}>确认作废</button></footer></section></div>}</div>;
 }
 
 export function PcApplicationModule() {
