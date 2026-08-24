@@ -460,7 +460,7 @@ function MobileApp() {
         <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“品牌物料补发”的 0 元仓配门店订单。若审批期间配送日或订购属性发生变化，将提示处理，不会静默减少数量。</p></section>
       </div>
       {notice && <div className="toast" role="status">{notice}</div>}
-      <footer className="bottom-bar"><button type="button" className="draft-button">保存草稿</button><button type="button" className="submit-button" onClick={submit}>提交审批</button></footer>
+      <footer className="bottom-bar"><button type="button" className="draft-button">保存草稿</button><button type="button" className="submit-button" onClick={submit}>审核</button></footer>
       {pickerOpen && <div className="modal-mask"><section className="picker-sheet" role="dialog" aria-modal="true" aria-label="选择补发物料">
         <div className="sheet-handle" />
         <div className="picker-head"><h2>选择补发物料</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div>

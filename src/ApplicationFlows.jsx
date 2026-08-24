@@ -268,7 +268,7 @@ function MobileForm({ initial, onBack, onSave, onSubmit }) {
       {message && <div className="af-mobile-toast">{message}</div>}
       <footer className="af-order-form-actions">
         <div><b>{total} 件</b><span>品项：{items.length}</span></div>
-        <section><button type="button" onClick={() => onSave({ ...initial, reason, date, note, productLines: items, items: items.length, qty: total })}>保存</button><button type="button" onClick={submit}>提交审批</button></section>
+        <section><button type="button" onClick={() => onSave({ ...initial, reason, date, note, productLines: items, items: items.length, qty: total })}>保存</button><button type="button" onClick={submit}>审核</button></section>
       </footer>
       {pickerOpen && <div className="af-mobile-mask"><section className="af-mobile-picker"><div className="af-picker-handle" /><header><h2>选择补发商品</h2><button type="button" onClick={() => setPickerOpen(false)}><X size={20} /></button></header><div className="af-picker-search"><Search size={16} /><input placeholder="搜索商品编码 / 名称" /></div><p className="af-picker-scope">已按“{reason}”与门店可订范围过滤</p>{PRODUCTS.map((item) => { const selected = items.some((product) => product.id === item.id); return <button type="button" className="af-picker-product" key={item.id} onClick={() => setItems((list) => selected ? list.filter((product) => product.id !== item.id) : [...list, { ...item, qty: item.min, proof: false }])}><img src={item.image} alt="" /><span><b>{item.name}</b><small>{item.code} · {item.spec}</small></span><i className={selected ? 'selected' : ''}>{selected && <Check size={15} />}</i></button>; })}<footer><span>已选 {items.length} 项</span><button type="button" onClick={() => setPickerOpen(false)}>完成</button></footer></section></div>}
     </main>
