@@ -24,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import { MobileApplicationFlow, PcApplicationModule } from './ApplicationFlows.jsx';
+import { PcOrderRelatedView, PcOrderTypeView } from './Pc909Additions.jsx';
 
 const productAsset = (filename) => `${import.meta.env.BASE_URL}assets/${filename}`;
 
@@ -482,6 +483,8 @@ export function App() {
   const view = new URLSearchParams(window.location.search).get('view');
   if (view === 'pc') return <PcConfig />;
   if (view === 'pc-apply') return <PcApplicationModule />;
+  if (view === 'pc-order-related') return <PcOrderRelatedView />;
+  if (view === 'pc-order-type') return <PcOrderTypeView />;
   if (view === 'app-form') return <MobileApp />;
   return <MobileApplicationFlow />;
 }
