@@ -232,7 +232,7 @@ function PcConfig() {
     }
     const reasonOrgDisplay = formatOrganizationNames(reasonOrgIds);
     if (drawer.mode === 'new') {
-      setReasons((list) => [{ code: 'BFYY0004', name: '活动物料补发', description: '门店活动期间物料破损补发', org: reasonOrgDisplay, orgIds: reasonOrgIds, products: boundProductIds.length, status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
+      setReasons((list) => [{ code: 'BFYY0004', name: '活动商品补发', description: '门店活动期间商品破损补发', org: reasonOrgDisplay, orgIds: reasonOrgIds, products: boundProductIds.length, status: '启用', editor: '当前用户', time: '刚刚' }, ...list]);
     }
     if (drawer.mode === 'edit') {
       setReasons((list) => list.map((item) => item.code === drawer.record.code
@@ -258,15 +258,15 @@ function PcConfig() {
           <div className="pc-system-name">ERP连锁管理</div>
           <button type="button"><ClipboardList size={18} />看板</button>
           <button type="button" className="active"><Truck size={18} />配送<ChevronRight size={15} /></button>
-          <div className="pc-submenu"><button type="button" onClick={() => { window.location.search = '?view=pc-apply'; }}>业务操作 · 品牌物料补发</button><b>业务设置</b><span>配送参数</span><span>门店订单</span></div>
+          <div className="pc-submenu"><button type="button" onClick={() => { window.location.search = '?view=pc-apply'; }}>业务操作 · 补发申请</button><b>业务设置</b><span>配送参数</span><span>门店订单</span></div>
           <button type="button"><Boxes size={18} />采购</button>
           <button type="button"><Settings size={18} />基础设置</button>
         </aside>
         <section className="pc-main">
-          <nav className="pc-page-tabs"><span>SCM看板</span><span>门店订单</span><span className="active">品牌物料补发配置 <X size={13} /></span></nav>
+          <nav className="pc-page-tabs"><span>SCM看板</span><span>门店订单</span><span className="active">补发申请配置 <X size={13} /></span></nav>
           <div className="pc-content-card">
             <div className="pc-title-row">
-              <div><p className="pc-breadcrumb">配送 / 业务设置</p><h1>品牌物料补发配置</h1></div>
+              <div><p className="pc-breadcrumb">配送 / 业务设置</p><h1>补发申请配置</h1></div>
             </div>
             <div className="pc-filter-panel">
                   <label>原因名称<input value={keyword} onChange={(event) => { setKeyword(event.target.value); setSelectedReasonCodes([]); }} placeholder="请输入原因名称" /></label>
@@ -285,8 +285,8 @@ function PcConfig() {
       {drawer && <div className="pc-drawer-mask"><aside className="pc-drawer">
         <header><div><h2>{drawer.mode === 'new' ? '新增' : '编辑'}补发配置</h2><p>配置申请端可选原因与允许补发的商品范围</p></div><button type="button" onClick={closeDrawer}><X size={21} /></button></header>
         <div className="pc-drawer-body">
-          <label><span className="pc-field-label">原因名称 <i>*</i></span><input defaultValue={drawer.record?.name || '活动物料补发'} /></label>
-          <label><span className="pc-field-label">原因说明</span><textarea defaultValue={drawer.record?.description || '门店活动期间品牌物料发生破损'} /></label>
+          <label><span className="pc-field-label">原因名称 <i>*</i></span><input defaultValue={drawer.record?.name || '活动商品补发'} /></label>
+          <label><span className="pc-field-label">原因说明</span><textarea defaultValue={drawer.record?.description || '门店活动期间商品发生破损'} /></label>
           <label><span className="pc-field-label">应用组织 <i>*</i></span><button className="pc-select-wide pc-select-active" type="button" aria-label="应用组织" aria-haspopup="dialog" aria-expanded={orgPickerOpen} onClick={openOrganizationPicker}>{formatOrganizationNames(reasonOrgIds)}<Search size={15} /></button></label>
           <div className="pc-binding-title"><span>绑定商品 <i>*</i></span><button type="button" onClick={openProductPicker}><Plus size={15} />添加商品</button></div>
           <table className="pc-mini-table"><thead><tr><th>商品编码</th><th>商品名称</th><th>规格</th><th>操作</th></tr></thead><tbody>{boundProducts.length > 0 ? boundProducts.map((item) => <tr key={item.id}><td>{item.code}</td><td>{item.name}</td><td>{item.spec}</td><td><button type="button" onClick={() => setBoundProductIds((current) => current.filter((id) => id !== item.id))}>移除</button></td></tr>) : <tr><td className="pc-mini-empty" colSpan="4">暂无绑定商品，请点击“添加商品”选择</td></tr>}</tbody></table>
@@ -381,7 +381,7 @@ function MobileApp() {
     setReason(nextReason);
     setItems([]);
     setReasonOpen(false);
-    setNotice('补发原因已切换，请重新选择该原因允许补发的物料。');
+    setNotice('补发原因已切换，请重新选择该原因允许补发的商品。');
   };
 
   const updateItem = (id, patch) => setItems((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));
@@ -404,8 +404,8 @@ function MobileApp() {
     setPickerOpen(false);
   };
   const submit = () => {
-    if (!items.length) return setNotice('请至少选择一项补发物料。');
-    if (items.some((item) => !item.proof)) return setNotice('请为每项物料补充破损图片后再提交。');
+    if (!items.length) return setNotice('请至少选择一项补发商品。');
+    if (items.some((item) => !item.proof)) return setNotice('请为每项商品补充图片凭证后再提交。');
     setNotice('');
     setSubmitted(true);
   };
@@ -432,9 +432,9 @@ function MobileApp() {
 
   return (
     <main className="app-shell">
-      <header className="page-header"><button type="button" aria-label="返回"><ArrowLeft size={25} /></button><h1>新增品牌物料补发申请</h1><span className="header-space" /></header>
+      <header className="page-header"><button type="button" aria-label="返回"><ArrowLeft size={25} /></button><h1>新增补发申请</h1><span className="header-space" /></header>
       <div className="scroll-content">
-        <section className="info-banner"><Info size={20} /><span>仅用于已到店且发生破损的物料补发申请。</span></section>
+        <section className="info-banner"><Info size={20} /><span>用于门店发起商品补发申请。</span></section>
         <section className="form-section">
           <h2>申请信息</h2>
           <div className="field-row"><label>申请门店 <i>*</i></label><div className="field-value"><span>华东事业部 · 星河路店</span><ChevronDown size={17} /></div></div>
@@ -443,26 +443,26 @@ function MobileApp() {
         </section>
 
         <section className="form-section materials-section">
-          <div className="section-title"><h2>补发物料 <em>*</em></h2><span>{items.length} 项 / {totalQty} 件</span></div>
-          <div className="rule-tip"><Info size={16} /><p>仅可选择当前补发原因允许的物料；提交时校验停止要货和订购属性，配送日由审核通过后生成的门店订单按现有规则计算。</p></div>
-          {items.length === 0 && <div className="empty-state"><PackagePlus size={25} /><p>尚未选择补发物料</p></div>}
+          <div className="section-title"><h2>补发商品 <em>*</em></h2><span>{items.length} 项 / {totalQty} 件</span></div>
+          <div className="rule-tip"><Info size={16} /><p>仅可选择当前补发原因允许的商品；提交时校验停止要货和订购属性，配送日由审核通过后生成的门店订单按现有规则计算。</p></div>
+          {items.length === 0 && <div className="empty-state"><PackagePlus size={25} /><p>尚未选择补发商品</p></div>}
           {items.map((item) => (
             <article className="material-card" key={item.id}>
-              <div className="material-top"><div><b>{item.name}</b><p>{item.spec} · {item.code}</p></div><button type="button" className="remove-button" aria-label="删除物料" onClick={() => setItems((current) => current.filter((value) => value.id !== item.id))}><X size={17} /></button></div>
+              <div className="material-top"><div><b>{item.name}</b><p>{item.spec} · {item.code}</p></div><button type="button" className="remove-button" aria-label="删除商品" onClick={() => setItems((current) => current.filter((value) => value.id !== item.id))}><X size={17} /></button></div>
               <div className="material-control"><span>申请数量</span><QuantityControl value={item.qty} max={item.limit} onChange={(qty) => updateItem(item.id, { qty })} /></div>
               <div className="material-control proof-row"><span>破损凭证 <i>*</i></span>{item.proof ? <button type="button" className="proof-ready" onClick={() => updateItem(item.id, { proof: false })}><FileImage size={17} /><span>破损图片_01.jpg</span><CircleCheck size={17} /></button> : <button type="button" className="upload-button" onClick={() => updateItem(item.id, { proof: true })}><Plus size={17} />上传图片</button>}</div>
               <p className="limit-note">按当前门店订购属性，本次最多可申请 {item.limit} 件</p>
             </article>
           ))}
-          <button type="button" className="add-material" onClick={openPicker}><Plus size={18} />添加补发物料</button>
+          <button type="button" className="add-material" onClick={openPicker}><Plus size={18} />添加补发商品</button>
         </section>
-        <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“品牌物料补发”的 0 元仓配门店订单，并按该门店订单生成时计算的配送日配送。</p></section>
+        <section className="notice-panel"><ShieldCheck size={19} /><p>审核通过后，系统将生成业务来源为“补发申请”的 0 元仓配门店订单，并按该门店订单生成时计算的配送日配送。</p></section>
       </div>
       {notice && <div className="toast" role="status">{notice}</div>}
       <footer className="bottom-bar"><button type="button" className="draft-button">保存草稿</button><button type="button" className="submit-button" onClick={submit}>审核</button></footer>
-      {pickerOpen && <div className="modal-mask"><section className="picker-sheet" role="dialog" aria-modal="true" aria-label="选择补发物料">
+      {pickerOpen && <div className="modal-mask"><section className="picker-sheet" role="dialog" aria-modal="true" aria-label="选择补发商品">
         <div className="sheet-handle" />
-        <div className="picker-head"><h2>选择补发物料</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div>
+        <div className="picker-head"><h2>选择补发商品</h2><button type="button" aria-label="关闭" onClick={() => setPickerOpen(false)}><X size={21} /></button></div>
         <p className="picker-help">已按“{reason}”过滤可补发商品</p>
         <label className="picker-search"><Search size={17} /><input autoFocus value={pickerKeyword} onChange={(event) => setPickerKeyword(event.target.value)} placeholder="搜索商品编码 / 名称 / 条码" />{pickerKeyword && <button type="button" aria-label="清空搜索" onClick={() => setPickerKeyword('')}><X size={16} /></button>}</label>
         <div className="picker-list">{filteredAvailableItems.map((item) => {

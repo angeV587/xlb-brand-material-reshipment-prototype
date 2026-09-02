@@ -21,12 +21,12 @@ import './pc-909-additions.css';
 
 const ORDER_ROWS = [
   { id: 'DD100199001060005068', type: '普通仓配', store: 'DF加盟', amount: '1,079.10', qty: '1.000', status: '审核', creator: '马正安', created: '08-27 22:50:36', reshipNo: 'BF202608150026' },
-  { id: 'DD100199001060005067', type: '仓配-物料补发', store: '星河路店', amount: '0.00', qty: '3.000', status: '审核', creator: '王小安', created: '08-27 22:41:18', reshipNo: 'BF202608150026' },
+  { id: 'DD100199001060005067', type: '仓配-补发申请', store: '星河路店', amount: '0.00', qty: '3.000', status: '审核', creator: '王小安', created: '08-27 22:41:18', reshipNo: 'BF202608150026' },
   { id: 'DD10011019980004263', type: '仓配-缺货订购', store: '测试门店加盟', amount: '1,000.00', qty: '1000.000', status: '审核', creator: '张浩杰', created: '08-27 18:29:15', reshipNo: '' },
   { id: 'DD10011019980004260', type: '普通仓配', store: '测试门店加盟', amount: '415.18', qty: '20.000', status: '审核', creator: '17838190191', created: '08-27 15:12:46', reshipNo: '' },
 ];
 
-const TYPE_OPTIONS = ['门店预订', '备货订单', '含代销仓配单', '越库', '智能补货', '物料补发'];
+const TYPE_OPTIONS = ['门店预订', '备货订单', '含代销仓配单', '越库', '智能补货', '补发申请'];
 
 function ErpFrame({ children }) {
   return (
@@ -95,7 +95,7 @@ function TypeCascader({ open, onToggle, onSelect }) {
           <button type="button">直供单<ChevronRight size={14} /></button>
         </div>
         <div className="x909-cascader-children">
-          {TYPE_OPTIONS.map((item) => <button type="button" key={item} className={item === '物料补发' ? 'new-type' : ''} onClick={() => onSelect(item)}>{item}</button>)}
+          {TYPE_OPTIONS.map((item) => <button type="button" key={item} className={item === '补发申请' ? 'new-type' : ''} onClick={() => onSelect(item)}>{item}</button>)}
         </div>
       </div>}
     </div>
@@ -124,8 +124,8 @@ function RelatedCard({ kind, number, color, onOpen }) {
   return (
     <button type="button" className="x909-related-card" onClick={onOpen}>
       <strong style={{ backgroundColor: color }}>{number}<ChevronRight size={17} /></strong>
-      <span>{kind === '物料补发' ? '审批：李木子' : '审核：王小安'}</span>
-      <small>{kind === '物料补发' ? '08-15 15:36:18' : '08-27 22:50:40'}</small>
+      <span>{kind === '补发申请' ? '审批：李木子' : '审核：王小安'}</span>
+      <small>{kind === '补发申请' ? '08-15 15:36:18' : '08-27 22:50:40'}</small>
     </button>
   );
 }
@@ -133,7 +133,7 @@ function RelatedCard({ kind, number, color, onOpen }) {
 function RelatedBusinessModal({ onClose, onOpenReship }) {
   const lanes = [
     { name: '门店预订单' },
-    { name: '物料补发', card: <RelatedCard kind="物料补发" number="BF202608150026" color="#416be7" onOpen={onOpenReship} /> },
+    { name: '补发申请', card: <RelatedCard kind="补发申请" number="BF202608150026" color="#416be7" onOpen={onOpenReship} /> },
     { name: '门店统配单' },
     { name: '关联门店订单' },
     { name: '门店订单', card: <RelatedCard kind="门店订单" number="DD100199001060005068" color="#24b44a" /> },
@@ -145,7 +145,7 @@ function RelatedBusinessModal({ onClose, onOpenReship }) {
         <header><h2 id="related-title">关联业务</h2><button type="button" aria-label="关闭关联业务" onClick={onClose}><X size={20} /></button></header>
         <div className="x909-lane-scroll">
           <div className="x909-related-lanes">
-            {lanes.map((lane) => <article key={lane.name} className={lane.name === '物料补发' ? 'highlight' : ''}><h3>{lane.name}</h3>{lane.card}</article>)}
+            {lanes.map((lane) => <article key={lane.name} className={lane.name === '补发申请' ? 'highlight' : ''}><h3>{lane.name}</h3>{lane.card}</article>)}
           </div>
         </div>
       </section>
@@ -171,7 +171,7 @@ function OrderPage({ mode }) {
   const [selectedType, setSelectedType] = useState('');
   const [appliedType, setAppliedType] = useState('');
   const [toast, setToast] = useState('');
-  const filtered = appliedType === '物料补发' ? ORDER_ROWS.filter((item) => item.type === '仓配-物料补发') : ORDER_ROWS;
+  const filtered = appliedType === '补发申请' ? ORDER_ROWS.filter((item) => item.type === '仓配-补发申请') : ORDER_ROWS;
   const selectType = (item) => {
     setSelectedType(item);
     setTypeMenuOpen(false);
@@ -189,7 +189,7 @@ function OrderPage({ mode }) {
         <OrderTable rows={filtered} onRelated={() => setRelatedOpen(true)} />
         <footer className="x909-pagination"><span>已选中 1 条</span><i /><span>共{filtered.length}条</span><button type="button">1</button><span>200 条/页</span></footer>
       </div>
-      {relatedOpen && <RelatedBusinessModal onClose={() => setRelatedOpen(false)} onOpenReship={() => { setToast('已打开物料补发申请 BF202608150026'); window.setTimeout(() => setToast(''), 2200); }} />}
+      {relatedOpen && <RelatedBusinessModal onClose={() => setRelatedOpen(false)} onOpenReship={() => { setToast('已打开补发申请 BF202608150026'); window.setTimeout(() => setToast(''), 2200); }} />}
       {toast && <div className="paf-toast"><CheckCircle2 size={16} />{toast}</div>}
     </ErpFrame>
   );
